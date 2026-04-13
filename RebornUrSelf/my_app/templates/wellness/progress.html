@@ -1,0 +1,304 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Progres - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Progresul meu</h1>
+            <p class="text-gray-400">Urmareste-ti evolutia in timp</p>
+        </div>
+        <a href="{% url 'export' %}" class="px-4 py-2 rounded-lg font-semibold text-sm transition" style="background-color: #162640; color: #e2e8f0; border: 1px solid #1a2d4a;">
+            <i class="fa-solid fa-download mr-1"></i> Export
+        </a>
+    </div>
+
+    <!-- Comparatie saptamanala -->
+    <div class="grid md:grid-cols-3 gap-4 mb-8">
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Calorii medii / zi</p>
+            <p class="text-3xl font-bold text-orange-400">{{ avg_cal_this }}</p>
+            <div class="mt-2 text-sm">
+                {% if cal_diff > 0 %}
+                <span class="text-red-400"><i class="fa-solid fa-arrow-up"></i> +{{ cal_diff }} vs sapt. trecuta</span>
+                {% elif cal_diff < 0 %}
+                <span class="text-emerald-400"><i class="fa-solid fa-arrow-down"></i> {{ cal_diff }} vs sapt. trecuta</span>
+                {% else %}
+                <span class="text-gray-500">= sapt. trecuta</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Scor check-in mediu</p>
+            <p class="text-3xl font-bold {% if avg_score_this >= 80 %}text-emerald-400{% elif avg_score_this >= 60 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ avg_score_this }}<span class="text-lg text-gray-500">/100</span></p>
+            <div class="mt-2 text-sm">
+                {% if score_diff > 0 %}
+                <span class="text-emerald-400"><i class="fa-solid fa-arrow-up"></i> +{{ score_diff }} vs sapt. trecuta</span>
+                {% elif score_diff < 0 %}
+                <span class="text-red-400"><i class="fa-solid fa-arrow-down"></i> {{ score_diff }} vs sapt. trecuta</span>
+                {% else %}
+                <span class="text-gray-500">= sapt. trecuta</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Greutate</p>
+            {% if weight_this %}
+            <p class="text-3xl font-bold text-blue-400">{{ weight_this }} <span class="text-lg text-gray-500">kg</span></p>
+            {% if weight_last %}
+            <div class="mt-2 text-sm">
+                {% if weight_this < weight_last %}
+                <span class="text-emerald-400"><i class="fa-solid fa-arrow-down"></i> -{{ weight_last|floatformat:1 }} -> {{ weight_this|floatformat:1 }}</span>
+                {% elif weight_this > weight_last %}
+                <span class="text-red-400"><i class="fa-solid fa-arrow-up"></i> {{ weight_last|floatformat:1 }} -> {{ weight_this|floatformat:1 }}</span>
+                {% else %}
+                <span class="text-gray-500">Stabila</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="text-3xl font-bold text-gray-500">--</p>
+            <p class="text-sm text-gray-600 mt-2">Nicio inregistrare</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <!-- Formular greutate -->
+        <div class="rounded-xl p-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <h3 class="font-bold text-lg mb-4 text-white"><i class="fa-solid fa-weight-scale text-emerald-400 mr-2"></i>Inregistreaza greutatea</h3>
+            <form method="post" class="space-y-3">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium mb-1" style="color: #94a3b8;">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn-primary w-full text-center">
+                    <i class="fa-solid fa-save mr-1"></i> Salveaza
+                </button>
+            </form>
+        </div>
+
+        <!-- Statistici -->
+        <div class="rounded-xl p-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <h3 class="font-bold text-lg mb-4 text-white"><i class="fa-solid fa-chart-pie text-blue-400 mr-2"></i>Statistici</h3>
+            {% if profile.weight_kg %}
+            <div class="space-y-3">
+                <div class="text-center p-4 rounded-lg" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                    <p class="text-3xl font-bold text-emerald-400">{{ profile.weight_kg }} kg</p>
+                    <p class="text-xs text-gray-500">Greutate curenta</p>
+                </div>
+                {% if profile.bmi %}
+                <div class="text-center p-4 rounded-lg" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                    <p class="text-3xl font-bold {% if profile.bmi < 18.5 %}text-blue-400{% elif profile.bmi < 25 %}text-emerald-400{% elif profile.bmi < 30 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ profile.bmi }}</p>
+                    <p class="text-xs text-gray-500">BMI - {% if profile.bmi < 18.5 %}Subponderal{% elif profile.bmi < 25 %}Normal{% elif profile.bmi < 30 %}Supraponderal{% else %}Obezitate{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-6 text-gray-500">
+                <i class="fa-solid fa-weight-scale text-3xl mb-2 block"></i>
+                <p class="text-sm">Completeaza datele in <a href="{% url 'profile' %}" class="text-emerald-400">profil</a>.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Grafic Greutate -->
+    {% if entries %}
+    <div class="rounded-xl p-6 mb-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <h3 class="font-bold text-lg mb-4 text-white"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>Evolutia greutatii</h3>
+        <canvas id="weight-canvas" height="200" class="w-full"></canvas>
+    </div>
+    {% endif %}
+
+    <!-- Grafic Calorii -->
+    <div class="rounded-xl p-6 mb-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <h3 class="font-bold text-lg mb-4 text-white"><i class="fa-solid fa-fire text-orange-400 mr-2"></i>Calorii zilnice (14 zile)</h3>
+        <canvas id="calorie-canvas" height="180" class="w-full"></canvas>
+    </div>
+
+    <!-- Grafic Check-in -->
+    <div class="rounded-xl p-6 mb-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <h3 class="font-bold text-lg mb-4 text-white"><i class="fa-solid fa-star text-yellow-400 mr-2"></i>Scor check-in (14 zile)</h3>
+        <canvas id="checkin-canvas" height="180" class="w-full"></canvas>
+    </div>
+
+    <!-- Istoric greutate -->
+    {% if entries %}
+    <div class="rounded-xl p-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <h3 class="font-bold text-lg mb-4 text-white"><i class="fa-solid fa-clock-rotate-left text-gray-400 mr-2"></i>Istoric greutate</h3>
+        <div class="space-y-2">
+            {% for entry in entries %}
+            <div class="flex items-center justify-between py-2" style="border-bottom: 1px solid #1a2d4a;">
+                <div>
+                    <span class="font-semibold text-lg text-white">{{ entry.weight }} kg</span>
+                    {% if entry.note %}<span class="text-sm ml-2 text-gray-500">- {{ entry.note }}</span>{% endif %}
+                </div>
+                <span class="text-sm text-gray-500">{{ entry.date|date:"d M Y" }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Helper: draw bar chart on canvas
+function drawBarChart(canvasId, data, valueKey, labelKey, targetLine, colorFn) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas || !data.length) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width = canvas.offsetWidth;
+    var H = canvas.height;
+    var pad = {top: 20, bottom: 30, left: 10, right: 10};
+    var chartW = W - pad.left - pad.right;
+    var chartH = H - pad.top - pad.bottom;
+    var values = data.map(function(d) { return d[valueKey]; });
+    var maxVal = Math.max.apply(null, values.concat([targetLine || 0])) * 1.15 || 100;
+    var barW = chartW / data.length * 0.65;
+    var gap = chartW / data.length;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Target line
+    if (targetLine) {
+        var ty = pad.top + chartH - (targetLine / maxVal * chartH);
+        ctx.strokeStyle = 'rgba(239,68,68,0.4)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(pad.left, ty); ctx.lineTo(W - pad.right, ty); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.fillText(targetLine + ' tinta', pad.left + 2, ty - 4);
+    }
+
+    data.forEach(function(d, i) {
+        var val = d[valueKey];
+        var x = pad.left + i * gap + (gap - barW) / 2;
+        var barH = val / maxVal * chartH;
+        var y = pad.top + chartH - barH;
+
+        ctx.fillStyle = colorFn ? colorFn(val) : '#10b981';
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
+        ctx.fill();
+
+        // Value on top
+        if (val > 0) {
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(val, x + barW / 2, y - 4);
+        }
+
+        // Label
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d[labelKey], x + barW / 2, H - 5);
+    });
+}
+
+// Helper: draw line chart
+function drawLineChart(canvasId, data) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas || !data.length) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width = canvas.offsetWidth;
+    var H = canvas.height;
+    var pad = {top: 20, bottom: 30, left: 10, right: 10};
+    var chartW = W - pad.left - pad.right;
+    var chartH = H - pad.top - pad.bottom;
+    var weights = data.map(function(d) { return d.weight; });
+    var minW = Math.min.apply(null, weights) - 1;
+    var maxW = Math.max.apply(null, weights) + 1;
+    var range = maxW - minW || 1;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Area fill
+    ctx.beginPath();
+    data.forEach(function(d, i) {
+        var x = pad.left + (i / (data.length - 1 || 1)) * chartW;
+        var y = pad.top + chartH - ((d.weight - minW) / range * chartH);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(pad.left + chartW, pad.top + chartH);
+    ctx.lineTo(pad.left, pad.top + chartH);
+    ctx.closePath();
+    var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+    grad.addColorStop(0, 'rgba(59,130,246,0.3)');
+    grad.addColorStop(1, 'rgba(59,130,246,0.02)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    data.forEach(function(d, i) {
+        var x = pad.left + (i / (data.length - 1 || 1)) * chartW;
+        var y = pad.top + chartH - ((d.weight - minW) / range * chartH);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Points + labels
+    data.forEach(function(d, i) {
+        var x = pad.left + (i / (data.length - 1 || 1)) * chartW;
+        var y = pad.top + chartH - ((d.weight - minW) / range * chartH);
+
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#3b82f6';
+        ctx.fill();
+        ctx.strokeStyle = '#111d33';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.weight, x, y - 10);
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(d.date, x, H - 5);
+    });
+}
+
+// Render charts
+var weightData = JSON.parse('{{ chart_data|escapejs }}');
+drawLineChart('weight-canvas', weightData);
+
+var calorieData = JSON.parse('{{ calorie_chart|escapejs }}');
+var targetCal = {{ target_cal }};
+drawBarChart('calorie-canvas', calorieData, 'calories', 'date', targetCal, function(val) {
+    if (val === 0) return '#1a2d4a';
+    if (val > targetCal * 1.1) return '#ef4444';
+    if (val > targetCal * 0.9) return '#f97316';
+    return '#10b981';
+});
+
+var checkinData = JSON.parse('{{ checkin_chart|escapejs }}');
+drawBarChart('checkin-canvas', checkinData, 'score', 'date', null, function(val) {
+    if (val === 0) return '#1a2d4a';
+    if (val >= 80) return '#10b981';
+    if (val >= 60) return '#facc15';
+    if (val >= 40) return '#f97316';
+    return '#ef4444';
+});
+
+// Redraw on resize
+window.addEventListener('resize', function() {
+    drawLineChart('weight-canvas', weightData);
+    drawBarChart('calorie-canvas', calorieData, 'calories', 'date', targetCal);
+    drawBarChart('checkin-canvas', checkinData, 'score', 'date');
+});
+</script>
+{% endblock %}

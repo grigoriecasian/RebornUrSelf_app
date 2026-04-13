@@ -1,0 +1,76 @@
+{% extends 'wellness/base.html' %}
+{% block title %}VIP - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-8">
+    {% if profile.is_vip %}
+    <div class="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-8 text-center text-white shadow-xl slide-up">
+        <i class="fa-solid fa-crown text-5xl mb-4"></i>
+        <h1 class="text-3xl font-bold mb-2">Esti VIP!</h1>
+        <p class="text-yellow-100 mb-6">Ai acces complet la toate functiile premium.</p>
+        <div class="flex flex-col gap-3">
+            <a href="{% url 'ai_companion' %}" class="bg-white text-yellow-700 px-6 py-3 rounded-lg font-semibold hover:bg-yellow-50 transition">
+                <i class="fa-solid fa-robot mr-1"></i> Deschide AI Companion
+            </a>
+            <a href="{% url 'generate_plan' %}" class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-700 transition">
+                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Genereaza plan alimentar
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="rounded-2xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="bg-gradient-to-r from-yellow-400 to-amber-500 p-8 text-center text-white">
+            <i class="fa-solid fa-crown text-5xl mb-4"></i>
+            <h1 class="text-3xl font-bold mb-2">Devino VIP</h1>
+            <p class="text-yellow-100">Deblocheaza toate functionalitatile premium</p>
+        </div>
+
+        <div class="p-8">
+            <div class="space-y-4 mb-8">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-check-circle text-emerald-500 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-white">AI Companion personal</p>
+                        <p class="text-sm" style="color: #94a3b8;">Chatbot inteligent de nutritie si fitness</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-check-circle text-emerald-500 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-white">Generare planuri alimentare</p>
+                        <p class="text-sm" style="color: #94a3b8;">Planuri personalizate generate de AI</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-check-circle text-emerald-500 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-white">Scanner AI avansat</p>
+                        <p class="text-sm" style="color: #94a3b8;">Analiza detaliata cu macronutrienti</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-check-circle text-emerald-500 text-xl"></i>
+                    <div>
+                        <p class="font-semibold text-white">Acces prioritar</p>
+                        <p class="text-sm" style="color: #94a3b8;">Functii noi deblocate primul</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-6">
+                <p class="text-sm" style="color: #64748b;">Pret simulat</p>
+                <p class="text-4xl font-bold text-white">100 <span class="text-lg" style="color: #64748b;">EUR/luna</span></p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white py-4 rounded-xl font-bold text-lg hover:from-yellow-500 hover:to-amber-600 transition shadow-lg">
+                    <i class="fa-solid fa-bolt mr-1"></i> Activeaza VIP acum
+                </button>
+            </form>
+            <p class="text-center text-xs mt-3" style="color: #64748b;">Plata este simulata - proiect demonstrativ</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

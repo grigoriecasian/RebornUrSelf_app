@@ -1,0 +1,94 @@
+{% extends 'wellness/base.html' %}
+{% block title %}AI Companion - RebornUrSelf{% endblock %}
+
+<!-- stilurile pt chat sunt in style.css -->
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white">
+                <i class="fa-solid fa-crown text-yellow-400"></i> ReborN AI
+            </h1>
+            <p class="text-sm" style="color: #94a3b8;">Asistentul tau personal de nutritie si fitness</p>
+        </div>
+        <form method="post" action="{% url 'clear_chat' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-sm transition hover:text-red-500" style="color: #64748b;"
+                onclick="return confirm('Stergi toata conversatia?')">
+                <i class="fa-solid fa-trash"></i> Sterge chat
+            </button>
+        </form>
+    </div>
+
+    <div class="rounded-2xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <!-- zona de chat -->
+        <div class="chat-container p-6 space-y-4" id="chat-box">
+            {% if not chat_history %}
+            <div class="text-center py-8" style="color: #64748b;">
+                <i class="fa-solid fa-robot text-4xl mb-3"></i>
+                <p>Salut! Sunt ReborN AI. Intreaba-ma orice despre nutritie, antrenamente sau sanatate.</p>
+            </div>
+            {% endif %}
+
+            {% for msg in chat_history %}
+            <div class="flex {% if msg.role == 'user' %}justify-end{% else %}justify-start{% endif %} fade-in">
+                <div class="max-w-[80%] {% if msg.role == 'user' %}msg-user{% else %}msg-ai{% endif %} p-4">
+                    {% if msg.role == 'assistant' %}
+                    <p class="text-xs text-emerald-500 font-semibold mb-1">
+                        <i class="fa-solid fa-robot"></i> ReborN AI
+                    </p>
+                    {% endif %}
+                    <p class="text-sm whitespace-pre-line text-white">{{ msg.content }}</p>
+                    <p class="text-xs mt-2" style="color: #64748b;">{{ msg.created_at|date:"H:i" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- input mesaj -->
+        <div class="p-4" style="border-top: 1px solid #1a2d4a; background-color: #0d1a2e;">
+            <form method="post" class="flex gap-3">
+                {% csrf_token %}
+                <textarea name="message" rows="2" required
+                    class="form-input flex-grow resize-none"
+                    placeholder="Scrie un mesaj..."
+                    onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();this.form.submit()}"></textarea>
+                <button type="submit" class="btn-primary self-end px-6">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+        <p class="text-xs w-full mb-1" style="color: #64748b;">Sugestii rapide:</p>
+        <button onclick="sendQuick('Ce ar trebui sa mananc pentru slabire?')" class="px-3 py-1.5 rounded-full text-xs transition" style="background-color: #0d1a2e; color: #94a3b8; border: 1px solid #1a2d4a;" onmouseenter="this.style.backgroundColor='#162640'" onmouseleave="this.style.backgroundColor='#0d1a2e'">
+            Plan de slabire
+        </button>
+        <button onclick="sendQuick('Ce exercitii recomanzi pentru incepatori?')" class="px-3 py-1.5 rounded-full text-xs transition" style="background-color: #0d1a2e; color: #94a3b8; border: 1px solid #1a2d4a;" onmouseenter="this.style.backgroundColor='#162640'" onmouseleave="this.style.backgroundColor='#0d1a2e'">
+            Exercitii incepatori
+        </button>
+        <button onclick="sendQuick('Cum pot combate rezistenta la insulina?')" class="px-3 py-1.5 rounded-full text-xs transition" style="background-color: #0d1a2e; color: #94a3b8; border: 1px solid #1a2d4a;" onmouseenter="this.style.backgroundColor='#162640'" onmouseleave="this.style.backgroundColor='#0d1a2e'">
+            Rezistenta insulina
+        </button>
+        <button onclick="sendQuick('Cate calorii ar trebui sa consum pe zi?')" class="px-3 py-1.5 rounded-full text-xs transition" style="background-color: #0d1a2e; color: #94a3b8; border: 1px solid #1a2d4a;" onmouseenter="this.style.backgroundColor='#162640'" onmouseleave="this.style.backgroundColor='#0d1a2e'">
+            Necesar caloric
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// scroll la ultimul mesaj
+var chatBox = document.getElementById('chat-box');
+if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+function sendQuick(text) {
+    var ta = document.querySelector('textarea[name="message"]');
+    ta.value = text;
+    ta.form.submit();
+}
+</script>
+{% endblock %}

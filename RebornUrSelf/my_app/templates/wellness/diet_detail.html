@@ -1,0 +1,154 @@
+{% extends 'wellness/base.html' %}
+{% block title %}{{ diet.name }} - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'diet_list' %}" class="text-emerald-400 hover:text-emerald-300 text-sm transition">
+        <i class="fa-solid fa-arrow-left"></i> Inapoi la diete
+    </a>
+</div>
+
+<div class="rounded-2xl overflow-hidden mb-8" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+    <div class="h-1.5
+        {% if diet.goal == 'lose' %}bg-emerald-500
+        {% elif diet.goal == 'gain' %}bg-red-500
+        {% else %}bg-blue-500{% endif %}">
+    </div>
+    <div class="p-8">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+            {% if diet.goal == 'lose' %}
+                <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: rgba(16,185,129,0.15); color: #6ee7b7;">Slabire</span>
+            {% elif diet.goal == 'gain' %}
+                <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: rgba(239,68,68,0.15); color: #fca5a5;">Masa musculara</span>
+            {% else %}
+                <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: rgba(59,130,246,0.15); color: #93bbfd;">Mentinere</span>
+            {% endif %}
+            {% if diet.is_insulin_friendly %}
+                <span class="px-3 py-1 rounded-full text-sm" style="background: rgba(139,92,246,0.15); color: #c4b5fd;">
+                    <i class="fa-solid fa-droplet"></i> Prietenos cu insulina
+                </span>
+            {% endif %}
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-3">{{ diet.name }}</h1>
+        <p class="text-gray-400 mb-5">{{ diet.description }}</p>
+        <div class="rounded-xl p-4 inline-block" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+            <i class="fa-solid fa-fire text-orange-400"></i>
+            <span class="font-bold text-lg text-white">{{ diet.calories_per_day }}</span>
+            <span class="text-gray-400">kcal / zi</span>
+        </div>
+    </div>
+</div>
+
+{% if days %}
+<div class="mb-6">
+    <div class="flex flex-wrap gap-2" id="day-tabs">
+        {% for day in days %}
+        <button onclick="showDay({{ day.number }})"
+            class="day-tab px-5 py-2.5 rounded-xl text-sm font-semibold transition"
+            data-day="{{ day.number }}"
+            style="{% if forloop.first %}background-color: #059669; color: white; box-shadow: 0 0 12px rgba(16,185,129,0.25);{% else %}background-color: #111d33; color: #94a3b8; border: 1px solid #1a2d4a;{% endif %}">
+            {{ day.name }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+{% for day in days %}
+<div class="day-content {% if not forloop.first %}hidden{% endif %}" id="day-{{ day.number }}">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-white">
+            <i class="fa-solid fa-calendar-day text-emerald-400 mr-1"></i> {{ day.name }}
+        </h2>
+        <span class="px-3 py-1 rounded-full text-sm font-bold" style="background: rgba(249,115,22,0.15); color: #fb923c;">
+            {{ day.total_cal }} kcal total
+        </span>
+    </div>
+
+    <div class="space-y-4 mb-8">
+        {% for meal in day.meals %}
+        <div class="rounded-xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <div class="px-5 py-3" style="border-bottom: 1px solid #1a2d4a;
+                {% if meal.type == 'breakfast' %}background: rgba(234,179,8,0.08);
+                {% elif meal.type == 'lunch' %}background: rgba(59,130,246,0.08);
+                {% elif meal.type == 'dinner' %}background: rgba(139,92,246,0.08);
+                {% else %}background: rgba(34,197,94,0.08);{% endif %}">
+                <span class="font-semibold text-sm uppercase tracking-wide
+                    {% if meal.type == 'breakfast' %}text-yellow-400
+                    {% elif meal.type == 'lunch' %}text-blue-400
+                    {% elif meal.type == 'dinner' %}text-purple-400
+                    {% else %}text-green-400{% endif %}">
+                    {% if meal.type == 'breakfast' %}<i class="fa-solid fa-sun mr-1"></i>
+                    {% elif meal.type == 'lunch' %}<i class="fa-solid fa-cloud-sun mr-1"></i>
+                    {% elif meal.type == 'dinner' %}<i class="fa-solid fa-moon mr-1"></i>
+                    {% else %}<i class="fa-solid fa-apple-whole mr-1"></i>{% endif %}
+                    {{ meal.label }}
+                </span>
+            </div>
+
+            {% for recipe in meal.recipes %}
+            <div class="{% if not forloop.last %}{% endif %}" style="{% if not forloop.last %}border-bottom: 1px solid #1a2d4a;{% endif %}">
+                <div class="flex gap-4 p-5">
+                    {% if recipe.image_url %}
+                    <div class="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
+                        <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}"
+                            class="w-full h-full object-cover" loading="lazy">
+                    </div>
+                    {% endif %}
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="text-lg font-bold text-white">{{ recipe.title }}</h3>
+                            <span class="px-2 py-0.5 rounded-lg text-sm font-semibold whitespace-nowrap ml-2" style="background: rgba(249,115,22,0.15); color: #fb923c;">
+                                {{ recipe.calories }} kcal
+                            </span>
+                        </div>
+                        <p class="text-gray-400 text-sm mb-2">{{ recipe.description }}</p>
+
+                        <div class="mb-2">
+                            <h4 class="font-semibold text-sm text-gray-300 mb-1">
+                                <i class="fa-solid fa-list text-gray-500"></i> Ingrediente
+                            </h4>
+                            <p class="text-gray-400 text-sm">{{ recipe.ingredients }}</p>
+                        </div>
+
+                        <details class="group">
+                            <summary class="cursor-pointer text-emerald-400 font-semibold text-sm hover:text-emerald-300 transition">
+                                <i class="fa-solid fa-book-open"></i> Instructiuni de preparare
+                            </summary>
+                            <div class="mt-2 text-gray-400 text-sm p-3 rounded-lg" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                                {{ recipe.instructions|linebreaksbr }}
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="text-center py-10 text-gray-500">
+    <p>Inca nu sunt retete adaugate la aceasta dieta.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showDay(dayNum) {
+    document.querySelectorAll('.day-content').forEach(el => el.classList.add('hidden'));
+    const target = document.getElementById('day-' + dayNum);
+    if (target) target.classList.remove('hidden');
+
+    document.querySelectorAll('.day-tab').forEach(btn => {
+        if (parseInt(btn.dataset.day) === dayNum) {
+            btn.style.cssText = 'background-color: #059669; color: white; box-shadow: 0 0 12px rgba(16,185,129,0.25);';
+        } else {
+            btn.style.cssText = 'background-color: #111d33; color: #94a3b8; border: 1px solid #1a2d4a;';
+        }
+    });
+}
+</script>
+{% endblock %}

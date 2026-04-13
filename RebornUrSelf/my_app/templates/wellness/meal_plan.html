@@ -1,0 +1,60 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Plan alimentar generat - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-4">
+        <a href="{% url 'vip_subscribe' %}" class="text-emerald-500 hover:underline text-sm">
+            <i class="fa-solid fa-arrow-left"></i> Inapoi
+        </a>
+    </div>
+
+    <div class="bg-gradient-to-r from-yellow-400 to-amber-500 rounded-2xl p-6 text-white mb-8 shadow-xl slide-up">
+        <h1 class="text-2xl font-bold mb-1">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Plan alimentar generat
+        </h1>
+        <p class="text-yellow-100">
+            Personalizat pentru obiectivul tau:
+            {% if profile.goal == 'lose' %}Slabire{% elif profile.goal == 'gain' %}Masa musculara{% else %}Mentinere{% endif %}
+        </p>
+        <p class="mt-2 text-yellow-200 text-sm">Total estimat: {{ total_cal }} kcal</p>
+    </div>
+
+    <div class="space-y-4">
+        {% for meal in meals %}
+        <div class="rounded-xl p-6 card" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <span class="text-xs font-semibold uppercase" style="color: #64748b;">{{ meal.meal }}</span>
+                    <h3 class="text-lg font-bold text-white">{{ meal.name }}</h3>
+                </div>
+                <span class="px-3 py-1 rounded-full text-sm font-bold" style="background-color: rgba(249,115,22,0.15); color: #fb923c;">
+                    {{ meal.calories }} kcal
+                </span>
+            </div>
+
+            <div class="flex gap-4 mb-3">
+                <span class="text-sm text-blue-400"><strong>{{ meal.protein }}g</strong> proteine</span>
+                <span class="text-sm text-yellow-400"><strong>{{ meal.carbs }}g</strong> carbs</span>
+                <span class="text-sm text-red-400"><strong>{{ meal.fat }}g</strong> grasimi</span>
+            </div>
+
+            {% if meal.ingredients %}
+            <p class="text-sm" style="color: #94a3b8;">
+                <i class="fa-solid fa-list mr-1" style="color: #64748b;"></i> {{ meal.ingredients }}
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+        <a href="{% url 'generate_plan' %}" class="btn-primary">
+            <i class="fa-solid fa-rotate mr-1"></i> Genereaza alt plan
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">
+            <i class="fa-solid fa-chart-line mr-1"></i> Mergi la tracker
+        </a>
+    </div>
+</div>
+{% endblock %}

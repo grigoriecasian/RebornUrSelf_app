@@ -1,0 +1,95 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Profil - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6 text-white">Profilul meu</h1>
+
+    <div class="rounded-2xl p-8 mb-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="flex items-center gap-4 mb-6 pb-6" style="border-bottom: 1px solid #1a2d4a;">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl text-emerald-400" style="background-color: rgba(16,185,129,0.15);">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-white">{{ user.username }}</h2>
+                <p style="color: #94a3b8;">{{ user.email }}</p>
+                {% if profile.is_vip %}
+                    <span class="bg-yellow-500 text-white px-2 py-0.5 rounded text-xs font-bold mt-1 inline-block">
+                        <i class="fa-solid fa-crown"></i> VIP
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if profile.bmi %}
+        <div class="rounded-lg p-4 mb-6" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <p class="text-2xl font-bold text-emerald-500">{{ profile.weight_kg }} kg</p>
+                    <p class="text-xs" style="color: #94a3b8;">Greutate</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-blue-500">{{ profile.height_cm }} cm</p>
+                    <p class="text-xs" style="color: #94a3b8;">Inaltime</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-purple-400">{{ profile.bmi }}</p>
+                    <p class="text-xs" style="color: #94a3b8;">BMI</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium mb-1" style="color: #94a3b8;">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-save mr-1"></i> Salveaza
+            </button>
+        </form>
+    </div>
+
+    <!-- greutate recenta -->
+    {% if weight_history %}
+    <div class="rounded-2xl p-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <h3 class="font-bold text-lg mb-4 text-white">Istoricul greutatii</h3>
+        <div class="space-y-2">
+            {% for entry in weight_history %}
+            <div class="flex justify-between items-center py-2" style="border-bottom: 1px solid #1a2d4a;">
+                <span class="font-semibold text-white">{{ entry.weight }} kg</span>
+                <span class="text-sm" style="color: #94a3b8;">{{ entry.date|date:"d M Y" }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'progress' %}" class="text-emerald-500 font-semibold text-sm mt-3 inline-block hover:underline">
+            Vezi tot progresul &rarr;
+        </a>
+    </div>
+    {% endif %}
+
+    {% if not profile.is_vip %}
+    <div class="mt-6 rounded-xl p-6" style="background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(245,158,11,0.15)); border: 1px solid rgba(234,179,8,0.3);">
+        <h3 class="font-bold text-lg text-yellow-400 mb-2">
+            <i class="fa-solid fa-crown text-yellow-500"></i> Devino VIP
+        </h3>
+        <p class="text-yellow-200 text-sm mb-3">
+            Acces la AI Companion, generare de planuri personalizate si suport prioritar.
+        </p>
+        <a href="{% url 'vip_subscribe' %}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition inline-block text-sm">
+            Activeaza VIP
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

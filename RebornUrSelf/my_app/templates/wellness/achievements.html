@@ -1,0 +1,50 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Achievements - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-white mb-2">Achievements</h1>
+        <p class="text-gray-400">{{ earned_count }} din {{ total }} deblocate</p>
+        <div class="mt-3 rounded-full overflow-hidden" style="background-color: #1a2d4a; height: 8px;">
+            <div class="h-full rounded-full" style="width: {% widthratio earned_count total 100 %}%; background: linear-gradient(90deg, #059669, #10b981, #34d399);"></div>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mb-8">
+        {% for item in achievements_data %}
+        <div class="rounded-xl p-5 flex items-center gap-4 transition {% if item.earned %}card-glow{% endif %}"
+            style="background-color: {% if item.earned %}#111d33{% else %}#0d1a2e{% endif %}; border: 1px solid {% if item.earned %}rgba(16,185,129,0.3){% else %}#1a2d4a{% endif %}; {% if not item.earned %}opacity: 0.5;{% endif %}">
+            <div class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                style="background: {% if item.earned %}rgba(16,185,129,0.15){% else %}rgba(100,116,139,0.1){% endif %};">
+                {% if item.earned %}
+                <i class="fa-solid {{ item.achievement.icon }}" style="color: {{ item.css_color }};"></i>
+                {% else %}
+                <i class="fa-solid fa-lock text-gray-600"></i>
+                {% endif %}
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-bold {% if item.earned %}text-white{% else %}text-gray-500{% endif %}">{{ item.achievement.name }}</h3>
+                <p class="text-sm {% if item.earned %}text-gray-400{% else %}text-gray-600{% endif %}">{{ item.achievement.description }}</p>
+            </div>
+            {% if item.earned %}
+            <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if earned_list %}
+    <h2 class="text-xl font-bold text-white mb-4">Istoric</h2>
+    <div class="space-y-2">
+        {% for ua in earned_list %}
+        <div class="rounded-lg p-3 flex items-center gap-3" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <i class="fa-solid {{ ua.achievement.icon }}" style="color: {{ ua.css_color }};"></i>
+            <span class="text-white font-semibold">{{ ua.achievement.name }}</span>
+            <span class="text-gray-500 text-sm ml-auto">{{ ua.earned_at|date:"d M Y" }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

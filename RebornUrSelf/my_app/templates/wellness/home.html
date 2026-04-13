@@ -1,0 +1,263 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Acasa - RebornUrSelf{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="rounded-2xl p-8 mb-8" style="background: linear-gradient(135deg, #0d2137 0%, #122a45 50%, #0a1628 100%); border: 1px solid #1a2d4a; box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);">
+    <h1 class="text-3xl font-bold text-white mb-2">Salut, {{ user.username }}!</h1>
+    <p class="text-gray-400 text-lg">Continua-ti progresul de azi. Fiecare pas conteaza.</p>
+
+    {% if calories_today %}
+    <div class="mt-4 rounded-xl p-4 inline-block" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);">
+        <span class="text-2xl font-bold text-emerald-400">{{ calories_today }}</span>
+        <span class="text-gray-400"> kcal consumate azi</span>
+    </div>
+    {% endif %}
+
+    <div class="mt-6 flex flex-wrap gap-3">
+        <a href="{% url 'dashboard' %}" class="bg-emerald-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-emerald-400 transition" style="box-shadow: 0 0 15px rgba(16,185,129,0.3);">
+            <i class="fa-solid fa-chart-line mr-1"></i> Tracker calorii
+        </a>
+        <a href="{% url 'ai_calories' %}" class="px-5 py-2 rounded-lg font-semibold transition" style="background-color: #162640; color: #e2e8f0; border: 1px solid #1a2d4a;">
+            <i class="fa-solid fa-camera mr-1"></i> Scaneaza o masa
+        </a>
+        {% if not user.userprofile.is_vip %}
+        <a href="{% url 'vip_subscribe' %}" class="bg-yellow-500 text-gray-900 px-5 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition">
+            <i class="fa-solid fa-crown mr-1"></i> Devino VIP
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- PROFIL CARD -->
+    <div class="rounded-xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="p-4 flex items-center gap-3" style="background: linear-gradient(135deg, #0d2137, #162640); border-bottom: 1px solid #1a2d4a;">
+            <i class="fa-solid fa-user-circle text-3xl text-emerald-400"></i>
+            <div>
+                <h2 class="text-xl font-bold text-white">Profilul Meu</h2>
+                <p class="text-sm text-gray-400">Actualizeaza-ti datele pentru recomandari precise</p>
+            </div>
+        </div>
+
+        {% if profile.weight_kg and profile.height_cm and profile.age and profile.gender %}
+        <!-- Profile stats display -->
+        <div class="p-4">
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="rounded-lg p-3 text-center" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                    <i class="fa-solid fa-weight-scale text-emerald-400 mb-1"></i>
+                    <p class="text-2xl font-bold text-white">{{ profile.weight_kg }} <span class="text-sm text-gray-400">kg</span></p>
+                    <p class="text-xs text-gray-500">Greutate</p>
+                </div>
+                <div class="rounded-lg p-3 text-center" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                    <i class="fa-solid fa-ruler-vertical text-blue-400 mb-1"></i>
+                    <p class="text-2xl font-bold text-white">{{ profile.height_cm|floatformat:0 }} <span class="text-sm text-gray-400">cm</span></p>
+                    <p class="text-xs text-gray-500">Inaltime</p>
+                </div>
+                <div class="rounded-lg p-3 text-center" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                    <i class="fa-solid fa-cake-candles text-purple-400 mb-1"></i>
+                    <p class="text-2xl font-bold text-white">{{ profile.age }} <span class="text-sm text-gray-400">ani</span></p>
+                    <p class="text-xs text-gray-500">Varsta</p>
+                </div>
+                <div class="rounded-lg p-3 text-center" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                    <i class="fa-solid fa-{% if profile.gender == 'M' %}mars{% else %}venus{% endif %} text-pink-400 mb-1"></i>
+                    <p class="text-2xl font-bold text-white">{{ profile.get_gender_display }}</p>
+                    <p class="text-xs text-gray-500">Gen</p>
+                </div>
+            </div>
+
+            {% if profile.bmi %}
+            <div class="rounded-lg p-3 flex items-center justify-between" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                <div>
+                    <p class="text-sm text-gray-400">BMI (Indice Masa Corporala)</p>
+                    <p class="text-3xl font-bold {% if profile.bmi < 18.5 %}text-blue-400{% elif profile.bmi < 25 %}text-emerald-400{% elif profile.bmi < 30 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ profile.bmi }}</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs px-2 py-1 rounded-full font-semibold
+                        {% if profile.bmi < 18.5 %}text-blue-400{% elif profile.bmi < 25 %}text-emerald-400{% elif profile.bmi < 30 %}text-yellow-400{% else %}text-red-400{% endif %}"
+                        style="background: {% if profile.bmi < 18.5 %}rgba(59,130,246,0.15){% elif profile.bmi < 25 %}rgba(16,185,129,0.15){% elif profile.bmi < 30 %}rgba(234,179,8,0.15){% else %}rgba(239,68,68,0.15){% endif %};">
+                        {% if profile.bmi < 18.5 %}Subponderal{% elif profile.bmi < 25 %}Normal{% elif profile.bmi < 30 %}Supraponderal{% else %}Obezitate{% endif %}
+                    </span>
+                    <p class="text-xs text-gray-500 mt-1">Obiectiv: {{ profile.get_goal_display }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <button onclick="document.getElementById('profile-edit').classList.toggle('hidden')" class="mt-3 text-sm text-emerald-400 hover:text-emerald-300 transition">
+                <i class="fa-solid fa-pen-to-square"></i> Editeaza profilul
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Profile edit form -->
+        <div id="profile-edit" class="{% if profile.weight_kg and profile.height_cm and profile.age and profile.gender %}hidden{% endif %} p-4" style="border-top: 1px solid #1a2d4a;">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="update_profile" value="1">
+                <div class="grid grid-cols-2 gap-3">
+                    {% for field in profile_form %}
+                    <div class="{% if field.name == 'suspected_insulin_resistance' %}col-span-2{% endif %}">
+                        <label class="text-xs text-gray-400 mb-1 block">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="mt-4 w-full bg-emerald-500 text-white py-2 rounded-lg font-semibold hover:bg-emerald-400 transition" style="box-shadow: 0 0 12px rgba(16,185,129,0.2);">
+                    <i class="fa-solid fa-save mr-1"></i> Salveaza
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCOR ZILNIC -->
+    <div class="rounded-xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="p-4 flex items-center gap-3" style="background: linear-gradient(135deg, #0d2137, #162640); border-bottom: 1px solid #1a2d4a;">
+            <i class="fa-solid fa-star text-3xl text-yellow-400"></i>
+            <div>
+                <h2 class="text-xl font-bold text-white">Check-in Zilnic</h2>
+                <p class="text-sm text-gray-400">Bifeaza ce ai facut azi - {{ today|date:"d M Y" }}</p>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <!-- Score display -->
+            <div class="flex items-center justify-center mb-4">
+                <div class="relative w-36 h-36">
+                    <svg class="w-36 h-36 transform -rotate-90" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="54" fill="none" stroke="#1a2d4a" stroke-width="8"/>
+                        <circle cx="60" cy="60" r="54" fill="none"
+                            stroke="{% if today_score >= 80 %}#10b981{% elif today_score >= 60 %}#facc15{% elif today_score >= 40 %}#f97316{% else %}#ef4444{% endif %}"
+                            stroke-width="8" stroke-linecap="round"
+                            stroke-dasharray="{% widthratio today_score 100 339 %} 339"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-4xl font-bold {% if today_score >= 80 %}text-emerald-400{% elif today_score >= 60 %}text-yellow-400{% elif today_score >= 40 %}text-orange-400{% else %}text-red-400{% endif %}">{{ today_score }}</span>
+                        <span class="text-xs text-gray-500">/ 100</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-4">
+                <p class="text-sm font-semibold
+                    {% if today_score >= 80 %}text-emerald-400{% elif today_score >= 60 %}text-yellow-400{% elif today_score >= 40 %}text-orange-400{% else %}text-red-400{% endif %}">
+                    {% if today_score == 100 %}Perfectiune! Excelent!
+                    {% elif today_score >= 80 %}Foarte bine! Continua asa!
+                    {% elif today_score >= 60 %}Bine! Mai ai putin!
+                    {% elif today_score >= 40 %}Acceptabil. Poti mai mult!
+                    {% elif today_score >= 20 %}Trebuie sa depui mai mult efort!
+                    {% else %}Incepe acum! Nu e prea tarziu!
+                    {% endif %}
+                </p>
+                <p class="text-xs text-gray-500 mt-1">Media saptamanii: {{ avg_score }}/100</p>
+            </div>
+
+            <!-- Checkin form -->
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="checkin" value="1">
+                <div class="space-y-2">
+                    {% for field in checkin_form %}
+                    <label class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition hover:bg-white/5" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+                        {{ field }}
+                        <span class="text-sm text-gray-300 flex-1">{{ field.label }}</span>
+                        {% if field.value %}
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                        {% else %}
+                        <i class="fa-regular fa-circle text-gray-600"></i>
+                        {% endif %}
+                    </label>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="mt-4 w-full bg-emerald-500 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-400 transition" style="box-shadow: 0 0 12px rgba(16,185,129,0.2);">
+                    <i class="fa-solid fa-check-double mr-1"></i> Salveaza Check-in
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- GRAFIC SCOR SAPTAMANAL -->
+<div class="rounded-xl p-6 mb-8" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+    <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-chart-column text-emerald-400 mr-2"></i>Scor Saptamanal</h3>
+    <div class="flex items-end justify-between gap-2" style="height: 120px;" id="week-chart">
+    </div>
+</div>
+
+<!-- Achievements badges -->
+{% if earned_badges %}
+<div class="rounded-xl p-6 mb-8" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-trophy text-yellow-400 mr-2"></i>Realizarile tale</h3>
+        <a href="{% url 'achievements' %}" class="text-sm text-emerald-400 hover:text-emerald-300 transition">Vezi toate <i class="fa-solid fa-arrow-right ml-1"></i></a>
+    </div>
+    <div class="flex flex-wrap gap-3">
+        {% for badge in earned_badges %}
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;">
+            <i class="fa-solid {{ badge.achievement.icon }}" style="color: {{ badge.css_color }};"></i>
+            <span class="text-sm text-gray-300">{{ badge.achievement.name }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick actions -->
+<div class="grid md:grid-cols-4 gap-4 mb-8">
+    <a href="{% url 'dashboard' %}" class="rounded-xl p-5 text-center transition hover:transform hover:-translate-y-1" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="text-3xl text-emerald-400 mb-2"><i class="fa-solid fa-utensils"></i></div>
+        <h3 class="font-bold text-white text-sm">Tracker</h3>
+        <p class="text-gray-500 text-xs mt-1">Calorii zilnice</p>
+    </a>
+    <a href="{% url 'diet_list' %}" class="rounded-xl p-5 text-center transition hover:transform hover:-translate-y-1" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="text-3xl text-blue-400 mb-2"><i class="fa-solid fa-bowl-food"></i></div>
+        <h3 class="font-bold text-white text-sm">Diete</h3>
+        <p class="text-gray-500 text-xs mt-1">Planuri alimentare</p>
+    </a>
+    <a href="{% url 'workout_list' %}" class="rounded-xl p-5 text-center transition hover:transform hover:-translate-y-1" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="text-3xl text-purple-400 mb-2"><i class="fa-solid fa-dumbbell"></i></div>
+        <h3 class="font-bold text-white text-sm">Antrenamente</h3>
+        <p class="text-gray-500 text-xs mt-1">Exercitii zilnice</p>
+    </a>
+    <a href="{% url 'progress' %}" class="rounded-xl p-5 text-center transition hover:transform hover:-translate-y-1" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="text-3xl text-yellow-400 mb-2"><i class="fa-solid fa-chart-line"></i></div>
+        <h3 class="font-bold text-white text-sm">Progres</h3>
+        <p class="text-gray-500 text-xs mt-1">Evolutia ta</p>
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const weekScores = JSON.parse('{{ week_scores|escapejs }}');
+    const chartContainer = document.getElementById('week-chart');
+
+    weekScores.forEach(item => {
+        const barHeight = Math.max(item.score, 4);
+        let barColor = '#ef4444';
+        if (item.score >= 80) barColor = '#10b981';
+        else if (item.score >= 60) barColor = '#facc15';
+        else if (item.score >= 40) barColor = '#f97316';
+
+        chartContainer.innerHTML += `
+        <div class="flex-1 flex flex-col items-center gap-1">
+            <span class="text-xs font-bold" style="color: ${barColor};">${item.score}</span>
+            <div class="w-full rounded-t-lg transition-all duration-500" style="height: ${barHeight}%; background-color: ${barColor}; min-height: 4px;"></div>
+            <span class="text-xs text-gray-500">${item.day}</span>
+            <span class="text-xs text-gray-600">${item.date}</span>
+        </div>`;
+    });
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.style.cssText = 'width: 20px; height: 20px; accent-color: #10b981; cursor: pointer;';
+        cb.addEventListener('change', function() {
+            const icon = this.closest('label').querySelector('i');
+            if (this.checked) {
+                icon.className = 'fa-solid fa-circle-check text-emerald-400';
+            } else {
+                icon.className = 'fa-regular fa-circle text-gray-600';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Retete - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-white mb-2">
+        {% if diet %}Retete din {{ diet.name }}{% else %}Toate retetele{% endif %}
+    </h1>
+    {% if diet %}
+    <a href="{% url 'diet_detail' diet.id %}" class="text-emerald-400 hover:text-emerald-300 text-sm transition">
+        <i class="fa-solid fa-arrow-left"></i> Inapoi la dieta
+    </a>
+    {% endif %}
+</div>
+
+{% if recipes %}
+<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for recipe in recipes %}
+    <div class="rounded-xl overflow-hidden transition hover:transform hover:-translate-y-1" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold text-lg text-white">{{ recipe.title }}</h3>
+                <span class="px-2 py-0.5 rounded text-xs font-bold ml-2" style="background-color: rgba(249,115,22,0.15); color: #fb923c;">
+                    {{ recipe.calories }} kcal
+                </span>
+            </div>
+            <p class="text-sm mb-3" style="color: #94a3b8;">{{ recipe.description|truncatewords:15 }}</p>
+            <p class="text-xs" style="color: #64748b;">
+                <i class="fa-solid fa-utensils" style="color: #475569;"></i>
+                Din dieta: <a href="{% url 'diet_detail' recipe.diet.id %}" class="text-emerald-400 hover:text-emerald-300 transition">{{ recipe.diet.name }}</a>
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16" style="color: #64748b;">
+    <i class="fa-solid fa-bowl-food text-5xl mb-4"></i>
+    <p>Nu sunt retete disponibile.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Rezistenta la Insulina - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- intro -->
+    <div class="p-8 rounded-xl mb-8" style="background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(249,115,22,0.15)); border-left: 4px solid #ef4444;">
+        <h1 class="text-3xl font-bold text-red-400 mb-3">Rezistenta la Insulina</h1>
+        <p class="text-red-300">Intelege, identifica si actioneaza pentru o sanatate metabolica optima.</p>
+    </div>
+
+    <!-- informatii -->
+    <div class="rounded-2xl p-8 mb-8" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-droplet text-red-500"></i> Ce este rezistenta la insulina?
+                </h3>
+                <p style="color: #94a3b8;">
+                    Rezistenta la insulina apare cand celulele din muschi, grasime si ficat nu mai raspund
+                    eficient la insulina. Pancreasul produce tot mai multa insulina pentru a compensa, ceea ce
+                    duce la hiperinsulinemie si, in timp, la pre-diabet sau diabet de tip 2.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i> Semne de alarma
+                </h3>
+                <ul class="space-y-1 ml-4" style="color: #94a3b8;">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle text-[6px] text-red-400 mt-2"></i>
+                        Foame frecventa si pofte de dulce
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle text-[6px] text-red-400 mt-2"></i>
+                        Grasime abdominala persistenta
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle text-[6px] text-red-400 mt-2"></i>
+                        Somnolenta dupa mese, mai ales dupa carbohidrati
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-circle text-[6px] text-red-400 mt-2"></i>
+                        Pete intunecate pe piele (gat, axile)
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-utensils text-emerald-500"></i> Cum ajuta dieta?
+                </h3>
+                <p style="color: #94a3b8;">
+                    Alimentatia cu indice glicemic scazut este esentiala. Evita zaharul rafinat, painea alba
+                    si alimentele ultraprocesate. Pune accent pe legume, proteine slabe, grasimi sanatoase
+                    si fibre. Dietele de tip "Slabire" din aplicatia noastra sunt concepute cu
+                    acest principiu.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-person-running text-blue-500"></i> Exercitiul fizic
+                </h3>
+                <p style="color: #94a3b8;">
+                    Miscarea regulata creste sensibilitatea la insulina. Chiar si 30 de minute de mers pe
+                    jos zilnic fac diferenta. Combina cu exercitii de forta de 2-3 ori pe saptamana.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- chestionar -->
+    <div class="rounded-2xl p-8" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <h2 class="text-2xl font-bold mb-2 text-white">Chestionar rapid de risc</h2>
+        <p class="mb-6 text-sm" style="color: #94a3b8;">
+            Nu inlocuieste diagnosticul medical. Consulta un medic pentru analize specifice.
+        </p>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <label class="flex items-center gap-3 p-3 rounded-lg transition cursor-pointer" style="background-color: #0d1a2e; border: 1px solid #1a2d4a;" onmouseenter="this.style.backgroundColor='#162640'" onmouseleave="this.style.backgroundColor='#0d1a2e'">
+                {{ field }}
+                <span class="text-white">{{ field.label }}</span>
+            </label>
+            {% endfor %}
+
+            <button type="submit" class="btn-primary w-full text-center py-3 mt-4">
+                <i class="fa-solid fa-stethoscope mr-1"></i> Evalueaza riscul
+            </button>
+        </form>
+
+        {% if result %}
+        <div class="mt-6 rounded-xl p-6 fade-in"
+            style="{% if result == 'RISC CRESCUT' %}background-color: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+            {% elif result == 'RISC MODERAT' %}background-color: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3);
+            {% else %}background-color: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);{% endif %}">
+
+            <h3 class="text-xl font-bold mb-2
+                {% if result == 'RISC CRESCUT' %}text-red-400
+                {% elif result == 'RISC MODERAT' %}text-yellow-400
+                {% else %}text-green-400{% endif %}">
+                <i class="fa-solid {% if result == 'RISC CRESCUT' %}fa-exclamation-triangle{% elif result == 'RISC MODERAT' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-1"></i>
+                {{ result }}
+            </h3>
+            <p class="mb-4" style="color: #94a3b8;">{{ explanation }}</p>
+
+            {% if recommendations %}
+            <h4 class="font-semibold mb-2" style="color: #94a3b8;">Recomandari:</h4>
+            <ul class="space-y-1">
+                {% for rec in recommendations %}
+                <li class="flex items-start gap-2 text-sm" style="color: #94a3b8;">
+                    <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i> {{ rec }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

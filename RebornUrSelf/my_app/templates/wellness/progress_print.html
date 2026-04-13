@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Progres RebornUrSelf - {{ profile.user.username }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #059669; border-bottom: 2px solid #059669; padding-bottom: 8px; }
+        h2 { color: #333; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0 20px; }
+        th { background: #059669; color: white; padding: 8px 12px; text-align: left; }
+        td { padding: 6px 12px; border-bottom: 1px solid #e0e0e0; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stat-box { display: inline-block; padding: 10px 20px; margin: 5px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: center; }
+        .stat-box .val { font-size: 24px; font-weight: bold; color: #059669; }
+        .stat-box .label { font-size: 12px; color: #666; }
+        .no-print { margin: 20px 0; }
+        @media print { .no-print { display: none; } body { padding: 0; } }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()" style="background: #059669; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
+            Printeaza / Salveaza PDF
+        </button>
+        <a href="{% url 'export' %}" style="margin-left: 10px; color: #059669;">Inapoi</a>
+    </div>
+
+    <div class="header">
+        <div>
+            <h1>RebornUrSelf - Raport Progres</h1>
+            <p><strong>{{ profile.user.username }}</strong> | {{ start_date|date:"d.m.Y" }} - {{ end_date|date:"d.m.Y" }}</p>
+        </div>
+    </div>
+
+    {% if profile.weight_kg or profile.height_cm or profile.age %}
+    <div>
+        {% if profile.weight_kg %}<div class="stat-box"><div class="val">{{ profile.weight_kg }}</div><div class="label">kg</div></div>{% endif %}
+        {% if profile.height_cm %}<div class="stat-box"><div class="val">{{ profile.height_cm|floatformat:0 }}</div><div class="label">cm</div></div>{% endif %}
+        {% if profile.age %}<div class="stat-box"><div class="val">{{ profile.age }}</div><div class="label">ani</div></div>{% endif %}
+        {% if profile.bmi %}<div class="stat-box"><div class="val">{{ profile.bmi }}</div><div class="label">BMI</div></div>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if weight_data %}
+    <h2>Greutate</h2>
+    <table>
+        <thead><tr><th>Data</th><th>Greutate (kg)</th><th>Observatii</th></tr></thead>
+        <tbody>
+        {% for w in weight_data %}
+        <tr><td>{{ w.date|date:"d.m.Y" }}</td><td>{{ w.weight }}</td><td>{{ w.note|default:"-" }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if calorie_data %}
+    <h2>Calorii Zilnice</h2>
+    <table>
+        <thead><tr><th>Data</th><th>Calorii</th><th>Proteine</th><th>Carbohidrati</th><th>Grasimi</th></tr></thead>
+        <tbody>
+        {% for c in calorie_data %}
+        <tr><td>{{ c.date|date:"d.m.Y" }}</td><td>{{ c.calories }} kcal</td><td>{{ c.protein }}g</td><td>{{ c.carbs }}g</td><td>{{ c.fat }}g</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if checkins %}
+    <h2>Check-in Zilnic</h2>
+    <table>
+        <thead><tr><th>Data</th><th>Scor</th><th>Dieta</th><th>Antrenament</th><th>Somn</th><th>Apa</th><th>Fara junk</th></tr></thead>
+        <tbody>
+        {% for c in checkins %}
+        <tr>
+            <td>{{ c.date|date:"d.m.Y" }}</td>
+            <td><strong>{{ c.score }}/100</strong></td>
+            <td>{% if c.followed_diet %}Da{% else %}-{% endif %}</td>
+            <td>{% if c.followed_workout %}Da{% else %}-{% endif %}</td>
+            <td>{% if c.followed_sleep %}Da{% else %}-{% endif %}</td>
+            <td>{% if c.drank_water %}Da{% else %}-{% endif %}</td>
+            <td>{% if c.no_junk_food %}Da{% else %}-{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <p style="text-align: center; color: #999; margin-top: 40px; font-size: 12px;">Generat de RebornUrSelf &copy; by Grafos</p>
+</body>
+</html>

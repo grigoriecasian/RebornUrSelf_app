@@ -1,0 +1,162 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Tracker Calorii - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Tracker calorii</h1>
+            <p class="text-sm" style="color: #94a3b8;">{{ today|date:"d F Y" }}</p>
+        </div>
+        <a href="{% url 'add_food' %}" class="btn-primary">
+            <i class="fa-solid fa-plus mr-1"></i> Adauga aliment
+        </a>
+    </div>
+
+    <!-- sumar zilnic -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-3xl font-bold text-orange-500">{{ total_cal }}</p>
+            <p class="text-sm" style="color: #94a3b8;">kcal consumate</p>
+            <div class="mt-2 rounded-full h-2" style="background-color: #0d1a2e;">
+                <div class="bg-orange-500 rounded-full h-2 transition-all" style="width: {% widthratio total_cal target_cal 100 %}%"></div>
+            </div>
+            <p class="text-xs mt-1" style="color: #64748b;">din {{ target_cal }} tinta</p>
+        </div>
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-3xl font-bold text-blue-500">{{ total_protein }}g</p>
+            <p class="text-sm" style="color: #94a3b8;">proteine</p>
+        </div>
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-3xl font-bold text-yellow-500">{{ total_carbs }}g</p>
+            <p class="text-sm" style="color: #94a3b8;">carbohidrati</p>
+        </div>
+        <div class="rounded-xl p-5 text-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <p class="text-3xl font-bold text-red-400">{{ total_fat }}g</p>
+            <p class="text-sm" style="color: #94a3b8;">grasimi</p>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+        <!-- grafic saptamanal -->
+        <div class="md:col-span-2 rounded-xl p-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <h3 class="font-bold mb-4 text-white">Ultimele 7 zile</h3>
+            <div class="flex items-end gap-2 h-40" id="weekly-chart">
+                <!-- se populeaza din JS -->
+            </div>
+        </div>
+
+        <!-- calorii ramase -->
+        <div class="rounded-xl p-6 flex flex-col items-center justify-center" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            {% if remaining_cal > 0 %}
+            <p class="text-sm mb-1" style="color: #94a3b8;">Mai ai de consumat</p>
+            <p class="text-4xl font-bold text-emerald-500">{{ remaining_cal }}</p>
+            <p class="text-sm" style="color: #64748b;">kcal</p>
+            {% else %}
+            <p class="text-sm mb-1" style="color: #94a3b8;">Tinta atinsa!</p>
+            <p class="text-4xl font-bold text-orange-500">{{ total_cal }}</p>
+            <p class="text-sm" style="color: #64748b;">kcal consumate</p>
+            {% endif %}
+
+            {% if not profile.weight_kg %}
+            <p class="text-xs mt-3 text-center" style="color: #64748b;">
+                <i class="fa-solid fa-info-circle"></i>
+                Seteaza greutatea in <a href="{% url 'profile' %}" class="text-emerald-500 underline">profil</a> pentru o tinta precisa.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- lista alimente azi -->
+    {% if logs_today %}
+    <div class="mt-8">
+        <h3 class="font-bold text-lg mb-4 text-white">Ce ai mancat azi</h3>
+        <div class="rounded-xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+            <table class="w-full text-sm">
+                <thead style="background-color: #0d1a2e;">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-xs uppercase" style="color: #64748b;">Aliment</th>
+                        <th class="text-center px-2 py-3 text-xs uppercase" style="color: #64748b;">Masa</th>
+                        <th class="text-center px-2 py-3 text-xs uppercase" style="color: #64748b;">Kcal</th>
+                        <th class="text-center px-2 py-3 text-xs uppercase" style="color: #64748b;">P</th>
+                        <th class="text-center px-2 py-3 text-xs uppercase" style="color: #64748b;">C</th>
+                        <th class="text-center px-2 py-3 text-xs uppercase" style="color: #64748b;">G</th>
+                        <th class="px-2 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs_today %}
+                    <tr style="border-top: 1px solid #1a2d4a;" onmouseenter="this.style.backgroundColor='#162640'" onmouseleave="this.style.backgroundColor='transparent'">
+                        <td class="px-4 py-3 font-medium text-white">{{ log.food_name }}</td>
+                        <td class="px-2 py-3 text-center" style="color: #94a3b8;">{{ log.get_meal_type_display }}</td>
+                        <td class="px-2 py-3 text-center font-semibold text-orange-500">{{ log.calories }}</td>
+                        <td class="px-2 py-3 text-center" style="color: #94a3b8;">{{ log.protein }}g</td>
+                        <td class="px-2 py-3 text-center" style="color: #94a3b8;">{{ log.carbs }}g</td>
+                        <td class="px-2 py-3 text-center" style="color: #94a3b8;">{{ log.fat }}g</td>
+                        <td class="px-2 py-3 text-center">
+                            <form method="post" action="{% url 'delete_food' log.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="hover:text-red-500 transition" style="color: #64748b;" title="Sterge">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="mt-8 text-center py-12 rounded-xl" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        <i class="fa-solid fa-plate-wheat text-4xl mb-3" style="color: #64748b;"></i>
+        <p class="mb-3" style="color: #64748b;">Nu ai inregistrat nimic azi.</p>
+        <a href="{% url 'add_food' %}" class="btn-primary">
+            <i class="fa-solid fa-plus mr-1"></i> Adauga primul aliment
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var data = JSON.parse('{{ weekly_data|escapejs }}');
+    var chart = document.getElementById('weekly-chart');
+    if (!chart || !data.length) return;
+
+    var maxCal = Math.max.apply(null, data.map(function(d) { return d.calories; }));
+    if (maxCal === 0) maxCal = 1;
+
+    data.forEach(function(d) {
+        var col = document.createElement('div');
+        col.className = 'flex-1 flex flex-col items-center gap-1';
+
+        var val = document.createElement('span');
+        val.className = 'text-xs font-medium';
+        val.style.color = '#94a3b8';
+        val.textContent = d.calories > 0 ? d.calories : '-';
+
+        var bar = document.createElement('div');
+        bar.className = 'w-full bg-emerald-400 rounded-t transition-all';
+        var h = d.calories > 0 ? Math.max((d.calories / maxCal) * 120, 8) : 4;
+        bar.style.height = h + 'px';
+        if (d.calories === 0) {
+            bar.className = 'w-full rounded-t';
+            bar.style.backgroundColor = '#1a2d4a';
+        }
+
+        var label = document.createElement('span');
+        label.className = 'text-xs';
+        label.style.color = '#64748b';
+        label.textContent = d.day_name;
+
+        col.appendChild(val);
+        col.appendChild(bar);
+        col.appendChild(label);
+        chart.appendChild(col);
+    });
+})();
+</script>
+{% endblock %}

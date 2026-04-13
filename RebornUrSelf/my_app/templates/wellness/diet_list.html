@@ -1,0 +1,86 @@
+{% extends 'wellness/base.html' %}
+{% block title %}Diete - RebornUrSelf{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-white mb-2">Planuri de dieta</h1>
+    <p class="text-gray-400">Alege un plan adaptat obiectivului tau.</p>
+</div>
+
+<!-- filtre -->
+<div class="flex flex-wrap gap-2 mb-8">
+    <a href="{% url 'diet_list' %}"
+        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition"
+        style="{% if not selected_goal %}background-color: #059669; color: white; box-shadow: 0 0 12px rgba(16,185,129,0.25);{% else %}background-color: #111d33; color: #94a3b8; border: 1px solid #1a2d4a;{% endif %}">
+        Toate
+    </a>
+    <a href="{% url 'diet_list' %}?goal=lose"
+        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition"
+        style="{% if selected_goal == 'lose' %}background-color: #059669; color: white; box-shadow: 0 0 12px rgba(16,185,129,0.25);{% else %}background-color: #111d33; color: #94a3b8; border: 1px solid #1a2d4a;{% endif %}">
+        Slabire
+    </a>
+    <a href="{% url 'diet_list' %}?goal=maintain"
+        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition"
+        style="{% if selected_goal == 'maintain' %}background-color: #2563eb; color: white; box-shadow: 0 0 12px rgba(59,130,246,0.25);{% else %}background-color: #111d33; color: #94a3b8; border: 1px solid #1a2d4a;{% endif %}">
+        Mentinere
+    </a>
+    <a href="{% url 'diet_list' %}?goal=gain"
+        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition"
+        style="{% if selected_goal == 'gain' %}background-color: #dc2626; color: white; box-shadow: 0 0 12px rgba(239,68,68,0.25);{% else %}background-color: #111d33; color: #94a3b8; border: 1px solid #1a2d4a;{% endif %}">
+        Masa musculara
+    </a>
+</div>
+
+{% if diets %}
+<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for diet in diets %}
+    <a href="{% url 'diet_detail' diet.id %}" class="rounded-xl overflow-hidden block transition hover:transform hover:-translate-y-1" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+        {% with diet.recipes.first as first_recipe %}
+        {% if first_recipe and first_recipe.image_url %}
+        <div class="h-36 overflow-hidden">
+            <img src="{{ first_recipe.image_url }}" alt="{{ diet.name }}"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                loading="lazy">
+        </div>
+        {% else %}
+        <div class="h-1.5
+            {% if diet.goal == 'lose' %}bg-emerald-500
+            {% elif diet.goal == 'gain' %}bg-red-500
+            {% else %}bg-blue-500{% endif %}">
+        </div>
+        {% endif %}
+        {% endwith %}
+        <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+                {% if diet.goal == 'lose' %}
+                    <span class="px-2 py-0.5 rounded-lg text-xs font-semibold" style="background: rgba(16,185,129,0.15); color: #6ee7b7;">Slabire</span>
+                {% elif diet.goal == 'gain' %}
+                    <span class="px-2 py-0.5 rounded-lg text-xs font-semibold" style="background: rgba(239,68,68,0.15); color: #fca5a5;">Masa musculara</span>
+                {% else %}
+                    <span class="px-2 py-0.5 rounded-lg text-xs font-semibold" style="background: rgba(59,130,246,0.15); color: #93bbfd;">Mentinere</span>
+                {% endif %}
+                {% if diet.is_insulin_friendly %}
+                    <span class="px-2 py-0.5 rounded-lg text-xs" style="background: rgba(139,92,246,0.15); color: #c4b5fd;">
+                        <i class="fa-solid fa-droplet"></i> IG scazut
+                    </span>
+                {% endif %}
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">{{ diet.name }}</h3>
+            <p class="text-gray-400 text-sm mb-3">{{ diet.description|truncatewords:20 }}</p>
+            <div class="flex items-center justify-between pt-3" style="border-top: 1px solid #1a2d4a;">
+                <span class="text-emerald-400 font-bold">
+                    <i class="fa-solid fa-fire"></i> {{ diet.calories_per_day }} kcal/zi
+                </span>
+                <span class="text-gray-500 text-sm">{{ diet.recipes.count }} retete</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 text-gray-500">
+    <i class="fa-solid fa-utensils text-5xl mb-4 block"></i>
+    <p class="text-lg">Nu exista diete disponibile momentan.</p>
+</div>
+{% endif %}
+{% endblock %}

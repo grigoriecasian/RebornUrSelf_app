@@ -1,0 +1,734 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RebornUrSelf - Nutritie & Fitness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS FOARTE ORGANIZAT: Definirea unor stiluri customizabile/animatii prin clase Tailwind -->
+    <style>
+        /* Animație de apariție pentru elemente dinamice */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden-section { display: none; }
+
+        /* Stiluri pentru butoanele de zi */
+        .btn-activ { background-color: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+        .btn-inactiv { background-color: #162640; color: #94a3b8; border: 1px solid #1a2d4a; }
+        .btn-inactiv:hover { background-color: #1e3354; color: #e2e8f0; }
+
+        /* Poziționare pentru badge-ul de zi pe cardul rețetei */
+        .day-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(16, 185, 129, 0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            z-index: 10;
+        }
+
+        /* Stil pentru Notificarea de Demo (Modal) */
+        #demo-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            max-width: 90%;
+            width: 400px;
+            background-color: #111d33;
+            border: 1px solid #1a2d4a;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Dark theme global overrides */
+        body { background-color: #0b1426 !important; color: #e2e8f0 !important; }
+
+        /* Glow effect on cards */
+        .card-glow { transition: all 0.3s ease; }
+        .card-glow:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 8px 32px rgba(0, 0, 0, 0.3); transform: translateY(-2px); }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0b1426; }
+        ::-webkit-scrollbar-thumb { background: #1a2d4a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1e3354; }
+    </style>
+</head>
+<body style="background-color: #0b1426; color: #e2e8f0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased;">
+
+    <!-- NAVIGARE (Organizat cu clase Tailwind) -->
+    <nav style="background-color: #091220; border-bottom: 1px solid #1a2d4a;" class="text-white sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="text-2xl font-bold tracking-wide flex items-center gap-2 cursor-pointer" onclick="schimbaSectiunea('acasa')">
+                <i class="fa-solid fa-leaf text-emerald-400"></i> <span class="text-white">Reborn</span><span class="text-emerald-400">UrSelf</span>
+            </div>
+
+            <div class="hidden md:flex space-x-6 items-center">
+                <button onclick="schimbaSectiunea('acasa'); afiseazaCitat()" class="text-gray-300 hover:text-emerald-400 transition">Acasa</button>
+                <button onclick="schimbaSectiunea('diete')" class="text-gray-300 hover:text-emerald-400 transition">Diete</button>
+                <button onclick="schimbaSectiunea('retete')" class="text-gray-300 hover:text-emerald-400 transition">Retete</button>
+                <button onclick="schimbaSectiunea('exercitii'); updateAntrenamenteUI()" class="text-gray-300 hover:text-emerald-400 transition">Exercitii</button>
+                <button onclick="schimbaSectiunea('program'); updateProgramUI()" class="text-gray-300 hover:text-emerald-400 transition">Program</button>
+                <button onclick="schimbaSectiunea('insulina')" class="text-gray-300 hover:text-emerald-400 transition">Insulina</button>
+                <a href="{% url 'login' %}" class="border border-emerald-400 text-emerald-400 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-emerald-400 hover:text-white transition">Intra in cont</a>
+                <a href="{% url 'register' %}" class="bg-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold hover:bg-emerald-400 transition shadow-lg" style="box-shadow: 0 0 15px rgba(16,185,129,0.3);">Cont nou</a>
+            </div>
+            <!-- Meniu mobil -->
+            <div class="md:hidden text-2xl cursor-pointer" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                <i class="fa-solid fa-bars" id="mobile-menu-icon"></i>
+            </div>
+        </div>
+        <!-- Mobile menu dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 space-y-2" style="background-color: #091220; border-top: 1px solid #1a2d4a;">
+            <button onclick="schimbaSectiunea('acasa'); afiseazaCitat(); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left text-gray-300 hover:text-emerald-400 py-2 transition">Acasa</button>
+            <button onclick="schimbaSectiunea('diete'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left text-gray-300 hover:text-emerald-400 py-2 transition">Diete</button>
+            <button onclick="schimbaSectiunea('retete'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left text-gray-300 hover:text-emerald-400 py-2 transition">Retete</button>
+            <button onclick="schimbaSectiunea('exercitii'); updateAntrenamenteUI(); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left text-gray-300 hover:text-emerald-400 py-2 transition">Exercitii</button>
+            <button onclick="schimbaSectiunea('program'); updateProgramUI(); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left text-gray-300 hover:text-emerald-400 py-2 transition">Program</button>
+            <button onclick="schimbaSectiunea('insulina'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left text-gray-300 hover:text-emerald-400 py-2 transition">Insulina</button>
+            <div class="flex gap-3 pt-2" style="border-top: 1px solid #1a2d4a;">
+                <a href="{% url 'login' %}" class="border border-emerald-400 text-emerald-400 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-emerald-400 hover:text-white transition">Intra in cont</a>
+                <a href="{% url 'register' %}" class="bg-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold hover:bg-emerald-400 transition">Cont nou</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 min-h-screen">
+
+        <!-- SECTIUNE: ACASĂ -->
+        <div id="acasa" class="fade-in">
+            <div class="text-center py-16 rounded-3xl mb-10" style="background: linear-gradient(135deg, #0d2137 0%, #122a45 50%, #0a1628 100%); border: 1px solid #1a2d4a; box-shadow: 0 0 40px rgba(16, 185, 129, 0.08);">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4"><span class="text-white">Transformă-ți corpul</span> <span class="text-emerald-400">inteligent</span></h1>
+                <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">Planuri de nutriție structurate pe zile și AI pentru monitorizare.</p>
+                <button onclick="schimbaSectiunea('diete')" class="bg-emerald-500 text-white px-8 py-3 rounded-lg text-lg hover:bg-emerald-400 transition" style="box-shadow: 0 0 20px rgba(16,185,129,0.3);">
+                    Alege Planul Tău
+                </button>
+            </div>
+
+            <!-- CITAT MOTIVAȚIONAL DINAMIC -->
+            <div class="p-6 rounded-xl mb-8" style="background-color: #111d33; border: 1px solid #1a2d4a; border-left: 4px solid #10b981;">
+                <h3 class="text-lg font-semibold text-emerald-400 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i> Inspirația Zilei (Plan: <span id="citat-plan" class="capitalize font-bold text-white">Slăbire</span>)
+                </h3>
+                <blockquote class="italic text-gray-400 border-l-2 border-emerald-800 pl-3 ml-2">
+                    <p id="citat-text" class="text-md">
+                        <!-- Preluare sigură a datelor din contextul Django -->
+                        {{ citate_db.slabit|default:"Motivația este ceea ce te face să începi. Obiceiul este ceea ce te face să continui." }}
+                    </p>
+                </blockquote>
+            </div>
+        </div>
+
+        <!-- SECTIUNE: DIETE -->
+        <div id="diete" class="hidden-section fade-in">
+            <h2 class="text-3xl font-bold text-white mb-6 pb-2" style="border-bottom: 1px solid #1a2d4a;">Alege Obiectivul</h2>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Card Slăbire -->
+                <div class="rounded-xl overflow-hidden card-glow" style="background-color: #111d33; border: 1px solid #1a2d4a; border-top: 4px solid #10b981;">
+                    <img src="https://placehold.co/600x192/10b981/ffffff?text=Deficit+Caloric" class="w-full h-48 object-cover" alt="Card Slăbire">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-emerald-400 mb-2">Slăbire (Deficit)</h3>
+                        <p class="text-gray-400 text-sm mb-4">Mese cu volum mare și calorii puține. Ideal pentru îmbunătățirea sensibilității la insulină.</p>
+                        <button onclick="selecteazaDieta('slabit'); updateAntrenamenteUI(); afiseazaCitat();" class="w-full bg-emerald-500 text-white py-2 rounded-lg font-semibold hover:bg-emerald-400 transition" style="box-shadow: 0 0 12px rgba(16,185,129,0.2);">Vezi Planul Alimentar</button>
+                    </div>
+                </div>
+
+                <!-- Card Menținere -->
+                <div class="rounded-xl overflow-hidden card-glow" style="background-color: #111d33; border: 1px solid #1a2d4a; border-top: 4px solid #3b82f6;">
+                    <img src="https://placehold.co/600x192/3b82f6/ffffff?text=Echilibru+Nutrițional" class="w-full h-48 object-cover" alt="Card Menținere">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-blue-400 mb-2">Menținere</h3>
+                        <p class="text-gray-400 text-sm mb-4">Echilibru perfect între nutrienți pentru un stil de viață activ.</p>
+                        <button onclick="selecteazaDieta('mentinere'); updateAntrenamenteUI(); afiseazaCitat();" class="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-400 transition" style="box-shadow: 0 0 12px rgba(59,130,246,0.2);">Vezi Planul Alimentar</button>
+                    </div>
+                </div>
+
+                <!-- Card Îngrășare -->
+                <div class="rounded-xl overflow-hidden card-glow" style="background-color: #111d33; border: 1px solid #1a2d4a; border-top: 4px solid #ef4444;">
+                    <img src="https://placehold.co/600x192/ef4444/ffffff?text=Masă+Musculară" class="w-full h-48 object-cover" alt="Card Masă Musculară">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-red-400 mb-2">Masă Musculară</h3>
+                        <p class="text-gray-400 text-sm mb-4">Surplus caloric din surse curate pentru creșterea masei musculare.</p>
+                        <button onclick="selecteazaDieta('ingrasare'); updateAntrenamenteUI(); afiseazaCitat();" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-400 transition" style="box-shadow: 0 0 12px rgba(239,68,68,0.2);">Vezi Planul Alimentar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTIUNE: REȚETE -->
+        <div id="retete" class="hidden-section fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-white" id="titlu-retete">Plan Alimentar</h2>
+                <span id="badge-dieta-curenta" class="px-3 py-1 rounded-full font-bold text-sm" style="background: rgba(16,185,129,0.15); color: #10b981;">Toate</span>
+            </div>
+
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2" style="border-bottom: 1px solid #1a2d4a;">
+                <span class="py-2 text-gray-400 font-bold mr-2 whitespace-nowrap">Ziua:</span>
+                <button onclick="schimbaZiua(1)" id="btn-zi-1" class="btn-activ px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 1</button>
+                <button onclick="schimbaZiua(2)" id="btn-zi-2" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 2</button>
+                <button onclick="schimbaZiua(3)" id="btn-zi-3" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 3</button>
+                <button onclick="schimbaZiua(4)" id="btn-zi-4" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 4</button>
+                <button onclick="schimbaZiua(5)" id="btn-zi-5" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 5</button>
+                <button onclick="schimbaZiua(6)" id="btn-zi-6" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 6</button>
+                <button onclick="schimbaZiua(7)" id="btn-zi-7" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 7</button>
+            </div>
+            
+            <!-- Filtre Mese -->
+            <div class="flex gap-3 mb-8 overflow-x-auto pb-2">
+                <button onclick="filtreazaMasa('toate')" class="text-white px-4 py-1 rounded-full text-xs transition" style="background-color: #10b981;">Tot Meniul</button>
+                <button onclick="filtreazaMasa('mic_dejun')" class="text-gray-300 px-4 py-1 rounded-full text-xs hover:text-white transition" style="background-color: #162640; border: 1px solid #1a2d4a;">Mic Dejun</button>
+                <button onclick="filtreazaMasa('gustare_1')" class="text-gray-300 px-4 py-1 rounded-full text-xs hover:text-white transition" style="background-color: #162640; border: 1px solid #1a2d4a;">Gustare 1</button>
+                <button onclick="filtreazaMasa('pranz')" class="text-gray-300 px-4 py-1 rounded-full text-xs hover:text-white transition" style="background-color: #162640; border: 1px solid #1a2d4a;">Pranz</button>
+                <button onclick="filtreazaMasa('gustare_2')" class="text-gray-300 px-4 py-1 rounded-full text-xs hover:text-white transition" style="background-color: #162640; border: 1px solid #1a2d4a;">Gustare 2</button>
+                <button onclick="filtreazaMasa('cina')" class="text-gray-300 px-4 py-1 rounded-full text-xs hover:text-white transition" style="background-color: #162640; border: 1px solid #1a2d4a;">Cina</button>
+            </div>
+
+            <!-- Lista Rețete (Afișată ca GRID responsive) -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="lista-retete">
+                <!-- Se populează de JS -->
+            </div>
+            <p id="mesaj-fara-retete" class="hidden text-center text-gray-500 py-10 italic" style="color: #64748b;">Selectează un plan de dietă pentru a vedea rețetele.</p>
+        </div>
+
+        <!-- SECTIUNE: EXERCIȚII -->
+        <div id="exercitii" class="hidden-section fade-in">
+             <h2 class="text-3xl font-bold text-white mb-6">Antrenamentele Tale (<span id="obiectiv-exercitii" class="text-emerald-400 capitalize">Slăbire</span>)</h2>
+
+            <!-- Day selector for exercises -->
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-2" style="border-bottom: 1px solid #1a2d4a;">
+                <span class="py-2 text-gray-400 font-bold mr-2 whitespace-nowrap">Ziua:</span>
+                <button onclick="schimbaZiuaEx(1)" id="btn-zi-ex-1" class="btn-activ px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 1</button>
+                <button onclick="schimbaZiuaEx(2)" id="btn-zi-ex-2" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 2</button>
+                <button onclick="schimbaZiuaEx(3)" id="btn-zi-ex-3" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 3</button>
+                <button onclick="schimbaZiuaEx(4)" id="btn-zi-ex-4" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 4</button>
+                <button onclick="schimbaZiuaEx(5)" id="btn-zi-ex-5" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 5</button>
+                <button onclick="schimbaZiuaEx(6)" id="btn-zi-ex-6" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 6</button>
+                <button onclick="schimbaZiuaEx(7)" id="btn-zi-ex-7" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 7</button>
+            </div>
+
+            <!-- Location tabs -->
+            <div class="flex mb-6" style="border-bottom: 1px solid #1a2d4a;">
+                <button id="tab-acasa" class="px-6 py-2 border-b-2 border-emerald-400 text-emerald-400 font-bold transition" onclick="schimbaLocatieExercitii('acasa')">Acasă</button>
+                <button id="tab-sala" class="px-6 py-2 text-gray-500 hover:text-emerald-400 border-b-2 border-transparent transition" onclick="schimbaLocatieExercitii('sala')">La Sală</button>
+                <button id="tab-aer_liber" class="px-6 py-2 text-gray-500 hover:text-emerald-400 border-b-2 border-transparent transition" onclick="schimbaLocatieExercitii('aer_liber')">Aer Liber</button>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="lista-exercitii">
+                <!-- Se populează de JS -->
+            </div>
+        </div>
+
+        <!-- SECTIUNE: PROGRAM ZILNIC -->
+        <div id="program" class="hidden-section fade-in">
+            <h2 class="text-3xl font-bold text-white mb-6"><i class="fa-solid fa-calendar-day text-emerald-400 mr-2"></i>Program Zilnic (<span id="obiectiv-program" class="text-emerald-400 capitalize">Slăbire</span>)</h2>
+
+            <!-- Day selector for program -->
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2" style="border-bottom: 1px solid #1a2d4a;">
+                <span class="py-2 text-gray-400 font-bold mr-2 whitespace-nowrap">Ziua:</span>
+                <button onclick="schimbaZiuaProg(1)" id="btn-zi-prog-1" class="btn-activ px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 1</button>
+                <button onclick="schimbaZiuaProg(2)" id="btn-zi-prog-2" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 2</button>
+                <button onclick="schimbaZiuaProg(3)" id="btn-zi-prog-3" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 3</button>
+                <button onclick="schimbaZiuaProg(4)" id="btn-zi-prog-4" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 4</button>
+                <button onclick="schimbaZiuaProg(5)" id="btn-zi-prog-5" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 5</button>
+                <button onclick="schimbaZiuaProg(6)" id="btn-zi-prog-6" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 6</button>
+                <button onclick="schimbaZiuaProg(7)" id="btn-zi-prog-7" class="btn-inactiv px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">Zi 7</button>
+            </div>
+
+            <div id="program-content">
+                <!-- Se populează de JS -->
+            </div>
+        </div>
+
+        <!-- SECTIUNE: INSULINĂ -->
+        <div id="insulina" class="hidden-section fade-in">
+            <div class="p-8 rounded-r-lg mb-8" style="background: rgba(239,68,68,0.08); border-left: 4px solid #ef4444; border: 1px solid rgba(239,68,68,0.2); border-left: 4px solid #ef4444;">
+                <h2 class="text-3xl font-bold text-red-400 mb-4">Rezistența la Insulină</h2>
+                <p class="text-lg text-red-300">Cheia către o sănătate metabolică optimă. Înțelege și acționează.</p>
+            </div>
+            <div class="p-6 rounded-xl space-y-6" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+                <article>
+                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-droplet text-red-400"></i> Ce este Rezistența la Insulină?</h3>
+                    <p class="text-gray-400">
+                        Rezistența la insulină (RI) apare atunci când celulele din mușchi, grăsime și ficat nu mai răspund eficient la insulină, hormonul produs de pancreas. Insulina este vitală, deoarece ajută la transportul glucozei (zahărul din sânge) din sânge în celule, unde este folosită ca energie. Când ești rezistent la insulină, pancreasul produce din ce în ce mai multă insulină pentru a încerca să mențină nivelul normal de glucoză. Acest lucru duce la hiperinsulinemie și, în timp, poate cauza pre-diabet și diabet de tip 2.
+                    </p>
+                </article>
+                <article>
+                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-utensils text-red-400"></i> Soluția 1: Dieta</h3>
+                    <p class="text-gray-400">
+                        Nutriția este pilonul principal. Dieta ideală se bazează pe alimente cu indice glicemic scăzut. Regimul de **Slăbire (Deficit Caloric)** din acest plan este cel mai potrivit pentru a inversa RI.
+                    </p>
+                </article>
+            </div>
+        </div>
+
+        <!-- SECTIUNE: VIP AI (Demo Scanner) -->
+        <div id="vip" class="hidden-section fade-in">
+             <div id="zona-plata" class="text-center py-10">
+                <h2 class="text-3xl font-bold text-white mb-4">Funcție Premium</h2>
+                <button onclick="activeazaVIP()" class="bg-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-400 transition" style="box-shadow: 0 0 20px rgba(16,185,129,0.3);">Activează Simulator VIP</button>
+            </div>
+            <div id="zona-ai" class="hidden">
+                <h2 class="text-2xl font-bold text-white mb-4">AI Detector (Demo)</h2>
+                 <div class="p-6 rounded-xl" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+                    <div class="rounded-lg p-10 mb-4 cursor-pointer transition relative" style="border: 2px dashed #1a2d4a; background-color: #0d1a2e;" onmouseover="this.style.backgroundColor='#162640'" onmouseout="this.style.backgroundColor='#0d1a2e'">
+                        <i class="fa-solid fa-camera text-4xl text-gray-500 mb-2"></i>
+                        <p class="text-gray-500">Încarcă poza (Simulare)</p>
+                        <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="simuleazaAnaliza(this)">
+                    </div>
+                    <div id="rezultat-analiza" class="hidden p-4 rounded-lg text-left" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);">
+                        <p class="font-bold text-emerald-400">Rezultat AI (Simulat):</p>
+                        <p class="text-gray-300">Această masă conține aproximativ 450 kcal (40g Proteine, 30g Carbohidrați, 20g Grăsimi).</p>
+                    </div>
+                     <div id="loading-analiza" class="hidden text-emerald-400 font-semibold">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Procesare în curs. Vă rugăm așteptați...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ELEMENT ASCUNS: Stochează datele de la Django pentru JS -->
+        <div id="django-data" class="hidden"
+            data-retete='[
+                {% for reteta in retete_db %}{
+                    "nume": "{{ reteta.nume }}",
+                    "tip": "{{ reteta.tip }}",
+                    "masa": "{{ reteta.masa }}",
+                    "zi": {{ reteta.zi }},
+                    "kcal": {{ reteta.kcal }},
+                    "proteine": {{ reteta.proteine }},
+                    "carbohidrati": {{ reteta.carbohidrati }},
+                    "grasimi": {{ reteta.grasimi }},
+                    "img": "{{ reteta.img_url }}",
+                    "instructiuni": "{{ reteta.instructiuni|escapejs }}"
+                }{% if not forloop.last %},{% endif %}{% endfor %}
+            ]'
+            data-exercitii='[
+                {% for ex in exercitii_db %}{
+                    "titlu": "{{ ex.titlu }}",
+                    "locatie": "{{ ex.locatie }}",
+                    "obiectiv": "{{ ex.obiectiv }}",
+                    "descriere": "{{ ex.descriere|escapejs }}",
+                    "tag": "{{ ex.tag }}",
+                    "zi": {{ ex.zi }},
+                    "img_url": "{{ ex.img_url }}",
+                    "youtube_url": "{{ ex.youtube_url }}",
+                    "durata_minute": {{ ex.durata_minute }}
+                }{% if not forloop.last %},{% endif %}{% endfor %}
+            ]'
+            data-citate='{{ citate_db|safe }}'
+            data-programe='{{ programe_db|safe }}'>
+        </div>
+
+    </main>
+    
+    <!-- Notificare Demo Video (Modal) -->
+    <div id="demo-modal" class="hidden p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-emerald-400">Simulare Video Demo</h3>
+            <button onclick="document.getElementById('demo-modal').classList.add('hidden')" class="text-gray-500 hover:text-gray-300">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
+        </div>
+        <p class="text-gray-400 mb-4">
+            **Video demo funcționează ca placeholder!**
+            <br><br>
+            Pentru exercițiul **<span id="demo-titlu-exercitiu" class="font-bold text-white"></span>**, în aplicația completă vei vedea aici un clip video scurt.
+        </p>
+    </div>
+
+
+    <script>
+        // --- VARIABILE GLOBALE PENTRU STARE ---
+        // Preluare sigură a stării inițiale din contextul Django
+        let dietaCurenta = '{{ dieta_curenta|default:"slabit" }}';
+        let ziuaCurenta = 1;
+        let ziuaExCurenta = 1;
+        let ziuaProgCurenta = 1;
+        let masaCurenta = 'toate';
+        let locatieCurenta = 'acasa';
+
+        // Preluarea datelor (DB) din atributele data-
+        const dataElement = document.getElementById('django-data');
+        const reteteDB = JSON.parse(dataElement.getAttribute('data-retete'));
+        const exercitiiDB = JSON.parse(dataElement.getAttribute('data-exercitii'));
+        const citateDB = JSON.parse(dataElement.getAttribute('data-citate'));
+        const programeDB = JSON.parse(dataElement.getAttribute('data-programe'));
+        
+        // --- FUNCȚII LOGICE ---
+
+        function schimbaSectiunea(id) {
+            document.querySelectorAll('div[id]').forEach(div => {
+                if(['acasa','diete','retete','exercitii','program','insulina','vip'].includes(div.id)) {
+                     div.classList.add('hidden-section');
+                }
+            });
+            
+            const el = document.getElementById(id);
+            if(el) el.classList.remove('hidden-section');
+            window.scrollTo(0, 0);
+        }
+        
+        function afiseazaCitat() {
+            const citat = citateDB[dietaCurenta];
+            if (citat) {
+                document.getElementById('citat-text').innerText = citat;
+            } else {
+                 document.getElementById('citat-text').innerText = "Motivația este ceea ce te face să începi. Obiceiul este ceea ce te face să continui.";
+            }
+
+            let numeObiectiv = '';
+            if (dietaCurenta === 'slabit') numeObiectiv = 'Slăbire'; 
+            else if (dietaCurenta === 'mentinere') numeObiectiv = 'Menținere'; 
+            else if (dietaCurenta === 'ingrasare') numeObiectiv = 'Masă Musculară';
+            document.getElementById('citat-plan').innerText = numeObiectiv;
+        }
+
+        function selecteazaDieta(tip) {
+            dietaCurenta = tip;
+            schimbaSectiunea('retete');
+            
+            const badge = document.getElementById('badge-dieta-curenta');
+            if(tip === 'slabit') {
+                badge.innerText = "Deficit Caloric";
+                badge.className = "px-3 py-1 rounded-full font-bold text-sm";
+                badge.style.cssText = "background: rgba(16,185,129,0.15); color: #10b981;";
+            } else if(tip === 'mentinere') {
+                badge.innerText = "Menținere";
+                badge.className = "px-3 py-1 rounded-full font-bold text-sm";
+                badge.style.cssText = "background: rgba(59,130,246,0.15); color: #60a5fa;";
+            } else if(tip === 'ingrasare') {
+                badge.innerText = "Surplus Caloric";
+                badge.className = "px-3 py-1 rounded-full font-bold text-sm";
+                badge.style.cssText = "background: rgba(239,68,68,0.15); color: #f87171;";
+            }
+
+            schimbaZiua(1);
+            masaCurenta = 'toate';
+            updateReteteUI();
+            afiseazaCitat();
+        }
+
+        function schimbaZiua(zi) {
+            ziuaCurenta = zi;
+            [1, 2, 3, 4, 5, 6, 7].forEach(z => {
+                const btn = document.getElementById(`btn-zi-${z}`);
+                if(btn) {
+                    if(z === zi) { btn.classList.remove('btn-inactiv'); btn.classList.add('btn-activ'); }
+                    else { btn.classList.remove('btn-activ'); btn.classList.add('btn-inactiv'); }
+                }
+            });
+            updateReteteUI();
+        }
+
+        function filtreazaMasa(masa) {
+            masaCurenta = masa;
+            updateReteteUI();
+        }
+
+        function updateReteteUI() {
+            const container = document.getElementById('lista-retete');
+            container.innerHTML = '';
+
+            const filtrate = reteteDB.filter(r => {
+                const matchDieta = r.tip === dietaCurenta;
+                const matchZi = r.zi === ziuaCurenta;
+                const matchMasa = masaCurenta === 'toate' || r.masa === masaCurenta;
+                return matchDieta && matchZi && matchMasa;
+            });
+
+            if (filtrate.length === 0) {
+                document.getElementById('mesaj-fara-retete').classList.remove('hidden');
+            } else {
+                 document.getElementById('mesaj-fara-retete').classList.add('hidden');
+                filtrate.forEach(r => {
+                    let culoareBadge = "background: rgba(148,163,184,0.15); color: #94a3b8;";
+                    let masaLabel = r.masa;
+                    if(r.masa === 'mic_dejun') { culoareBadge = "background: rgba(234,179,8,0.15); color: #facc15;"; masaLabel = 'Mic Dejun'; }
+                    else if(r.masa === 'gustare_1') { culoareBadge = "background: rgba(168,85,247,0.15); color: #c084fc;"; masaLabel = 'Gustare'; }
+                    else if(r.masa === 'pranz') { culoareBadge = "background: rgba(249,115,22,0.15); color: #fb923c;"; masaLabel = 'Pranz'; }
+                    else if(r.masa === 'gustare_2') { culoareBadge = "background: rgba(168,85,247,0.15); color: #c084fc;"; masaLabel = 'Gustare'; }
+                    else if(r.masa === 'cina') { culoareBadge = "background: rgba(99,102,241,0.15); color: #818cf8;"; masaLabel = 'Cina'; }
+
+                    let placeholderBg = '22c55e';
+                    if (r.tip === 'ingrasare') placeholderBg = 'ef4444';
+                    if (r.tip === 'mentinere') placeholderBg = '3b82f6';
+
+                    const sanitizedName = r.nume.replace(/ /g, '+').replace(/[^a-zA-Z0-9+]/g, '');
+                    const imgSrc = r.img ? r.img : `https://placehold.co/400x160/${placeholderBg}/ffffff?text=${sanitizedName}`;
+
+                    const html = `
+                    <div class="rounded-xl overflow-hidden fade-in relative group card-glow" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+                        <div class="day-badge">Ziua ${r.zi}</div>
+                        <img src="${imgSrc}"
+                             class="w-full h-40 object-cover group-hover:scale-105 transition duration-500"
+                             alt="${r.nume}"
+                             onerror="this.src='https://placehold.co/400x160/${placeholderBg}/ffffff?text=${sanitizedName}'">
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-lg leading-tight text-white">${r.nume}</h4>
+                            </div>
+                            <div class="flex gap-2 mb-3 flex-wrap">
+                                <span class="text-xs px-2 py-1 rounded font-semibold" style="${culoareBadge}">${masaLabel}</span>
+                            </div>
+                            <!-- Macro -->
+                            <div class="flex gap-3 mb-3 text-xs">
+                                <span style="color: #10b981;"><i class="fa-solid fa-dna"></i> P: ${r.proteine || 0}g</span>
+                                <span style="color: #60a5fa;"><i class="fa-solid fa-wheat-awn"></i> C: ${r.carbohidrati || 0}g</span>
+                                <span style="color: #f59e0b;"><i class="fa-solid fa-droplet"></i> G: ${r.grasimi || 0}g</span>
+                            </div>
+                            <!-- Instructiuni -->
+                            ${r.instructiuni ? `<div class="text-xs text-gray-500 mb-3 line-clamp-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${r.instructiuni}</div>
+                            <button onclick="event.stopPropagation(); this.previousElementSibling.style.display=this.previousElementSibling.style.webkitLineClamp === '2' ? 'block' : '-webkit-box'; this.previousElementSibling.style.webkitLineClamp = this.previousElementSibling.style.webkitLineClamp === '2' ? 'unset' : '2'; this.innerText = this.innerText === 'Citeste mai mult' ? 'Ascunde' : 'Citeste mai mult';" class="text-xs text-emerald-400 hover:text-emerald-300 cursor-pointer mb-2">Citeste mai mult</button>` : ''}
+                            <div class="flex justify-between items-center pt-3" style="border-top: 1px solid #1a2d4a;">
+                                <span class="text-emerald-400 font-bold"><i class="fa-solid fa-fire"></i> ${r.kcal} kcal</span>
+                                <button class="text-gray-600 hover:text-emerald-400 transition"><i class="fa-regular fa-heart"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                    container.innerHTML += html;
+                });
+            }
+        }
+
+        // --- EXERCIȚII LOGICĂ ---
+
+        function schimbaZiuaEx(zi) {
+            ziuaExCurenta = zi;
+            [1,2,3,4,5,6,7].forEach(z => {
+                const btn = document.getElementById(`btn-zi-ex-${z}`);
+                if(btn) {
+                    if(z === zi) { btn.classList.remove('btn-inactiv'); btn.classList.add('btn-activ'); }
+                    else { btn.classList.remove('btn-activ'); btn.classList.add('btn-inactiv'); }
+                }
+            });
+            updateAntrenamenteUI();
+        }
+
+        function schimbaLocatieExercitii(locatie) {
+            locatieCurenta = locatie;
+            ['acasa','sala','aer_liber'].forEach(l => {
+                const btn = document.getElementById(`tab-${l}`);
+                if(l === locatie) btn.className = "px-6 py-2 border-b-2 border-emerald-400 text-emerald-400 font-bold transition";
+                else btn.className = "px-6 py-2 text-gray-500 hover:text-emerald-400 border-b-2 border-transparent transition";
+            });
+            updateAntrenamenteUI();
+        }
+
+        function getYoutubeEmbedUrl(url) {
+            if (!url) return '';
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+            return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : '';
+        }
+
+        function updateAntrenamenteUI() {
+            const container = document.getElementById('lista-exercitii');
+            const titlu = document.getElementById('obiectiv-exercitii');
+            container.innerHTML = '';
+
+            let numeObiectiv = '';
+            let culoareObiectiv = '';
+            if (dietaCurenta === 'slabit') { numeObiectiv = 'Slăbire'; culoareObiectiv = 'text-emerald-400'; }
+            else if (dietaCurenta === 'mentinere') { numeObiectiv = 'Menținere'; culoareObiectiv = 'text-blue-400'; }
+            else if (dietaCurenta === 'ingrasare') { numeObiectiv = 'Masă Musculară'; culoareObiectiv = 'text-red-400'; }
+
+            titlu.innerText = numeObiectiv;
+            titlu.className = culoareObiectiv + ' capitalize';
+
+            const filtrate = exercitiiDB.filter(ex =>
+                ex.locatie === locatieCurenta && ex.obiectiv === dietaCurenta && ex.zi === ziuaExCurenta
+            );
+
+            if(filtrate.length === 0) {
+                container.innerHTML = `<div class="p-6 rounded-xl text-center col-span-full" style="background-color: #111d33; border: 1px solid #1a2d4a; color: #64748b;">
+                    <i class="fa-solid fa-person-running text-4xl mb-3 block"></i>
+                    <p>Nu există antrenamente pentru <strong>${numeObiectiv}</strong> - Ziua ${ziuaExCurenta} la locația <strong>${locatieCurenta}</strong>.</p>
+                </div>`;
+                return;
+            }
+
+            filtrate.forEach(ex => {
+                let badgeStyle = 'background: rgba(148,163,184,0.15); color: #94a3b8;';
+                if (ex.tag.includes('HIIT') || ex.tag.includes('Cardio')) badgeStyle = 'background: rgba(234,179,8,0.15); color: #facc15;';
+                if (ex.tag.includes('Forta') || ex.tag.includes('Hipertrofie')) badgeStyle = 'background: rgba(99,102,241,0.15); color: #818cf8;';
+                if (ex.tag.includes('Flexibilitate') || ex.tag.includes('Yoga')) badgeStyle = 'background: rgba(168,85,247,0.15); color: #c084fc;';
+
+                const embedUrl = getYoutubeEmbedUrl(ex.youtube_url);
+                const imgSrc = ex.img_url || `https://placehold.co/400x200/10b981/ffffff?text=Exercitiu`;
+
+                container.innerHTML += `
+                <div class="rounded-xl overflow-hidden fade-in card-glow" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+                    ${embedUrl ? `
+                    <div class="relative" style="padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                        <iframe src="${embedUrl}" class="absolute top-0 left-0 w-full h-full" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen loading="lazy"></iframe>
+                    </div>` : `
+                    <img src="${imgSrc}" class="w-full h-48 object-cover" alt="${ex.titlu}"
+                         onerror="this.src='https://placehold.co/400x200/10b981/ffffff?text=Exercitiu'">`}
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-lg text-white">${ex.titlu}</h3>
+                            <span class="text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap ml-2" style="${badgeStyle}">${ex.tag}</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-3">${ex.descriere}</p>
+                        <div class="flex items-center gap-4 pt-3 text-xs" style="border-top: 1px solid #1a2d4a;">
+                            <span style="color: #10b981;"><i class="fa-solid fa-clock"></i> ${ex.durata_minute} min</span>
+                            <span style="color: #60a5fa;"><i class="fa-solid fa-calendar-day"></i> Ziua ${ex.zi}</span>
+                            <span style="color: #f59e0b;"><i class="fa-solid fa-location-dot"></i> ${ex.locatie === 'acasa' ? 'Acasă' : ex.locatie === 'sala' ? 'Sală' : 'Aer liber'}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // --- PROGRAM ZILNIC LOGICĂ ---
+
+        function schimbaZiuaProg(zi) {
+            ziuaProgCurenta = zi;
+            [1,2,3,4,5,6,7].forEach(z => {
+                const btn = document.getElementById(`btn-zi-prog-${z}`);
+                if(btn) {
+                    if(z === zi) { btn.classList.remove('btn-inactiv'); btn.classList.add('btn-activ'); }
+                    else { btn.classList.remove('btn-activ'); btn.classList.add('btn-inactiv'); }
+                }
+            });
+            updateProgramUI();
+        }
+
+        function updateProgramUI() {
+            const container = document.getElementById('program-content');
+            const titlu = document.getElementById('obiectiv-program');
+            container.innerHTML = '';
+
+            let numeObiectiv = '';
+            if (dietaCurenta === 'slabit') numeObiectiv = 'Slăbire';
+            else if (dietaCurenta === 'mentinere') numeObiectiv = 'Menținere';
+            else if (dietaCurenta === 'ingrasare') numeObiectiv = 'Masă Musculară';
+            titlu.innerText = numeObiectiv;
+
+            const prog = programeDB.find(p => p.tip_dieta === dietaCurenta && p.zi === ziuaProgCurenta);
+
+            if (!prog) {
+                container.innerHTML = `<div class="p-6 rounded-xl text-center" style="background-color: #111d33; border: 1px solid #1a2d4a; color: #64748b;">
+                    <i class="fa-solid fa-calendar-xmark text-4xl mb-3 block"></i>
+                    <p>Nu există program pentru <strong>${numeObiectiv}</strong> - Ziua ${ziuaProgCurenta}.</p>
+                </div>`;
+                return;
+            }
+
+            const dayNames = {1:'Luni',2:'Marți',3:'Miercuri',4:'Joi',5:'Vineri',6:'Sâmbătă',7:'Duminică'};
+
+            container.innerHTML = `
+            <div class="rounded-xl overflow-hidden" style="background-color: #111d33; border: 1px solid #1a2d4a;">
+                <div class="p-4 flex items-center gap-3" style="background: linear-gradient(135deg, #0d2137, #162640); border-bottom: 1px solid #1a2d4a;">
+                    <i class="fa-solid fa-calendar-day text-2xl text-emerald-400"></i>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">${dayNames[prog.zi] || 'Ziua ' + prog.zi}</h3>
+                        <p class="text-sm text-gray-400">${numeObiectiv} - Program complet</p>
+                    </div>
+                </div>
+
+                ${prog.sfat_zi ? `<div class="mx-4 mt-4 p-3 rounded-lg" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
+                    <p class="text-sm text-emerald-400"><i class="fa-solid fa-lightbulb mr-1"></i> ${prog.sfat_zi}</p>
+                </div>` : ''}
+
+                <div class="p-4 space-y-3">
+                    <!-- Timeline -->
+                    <div class="relative pl-8">
+                        <div class="absolute left-3 top-2 bottom-2 w-0.5" style="background: #1a2d4a;"></div>
+
+                        ${timelineItem('fa-sun', '#facc15', prog.trezire, 'Trezire', 'Începe ziua cu energie!')}
+                        ${timelineItem('fa-mug-hot', '#f97316', prog.mic_dejun_ora, 'Mic Dejun', '')}
+                        ${timelineItem('fa-apple-whole', '#c084fc', prog.gustare1_ora, 'Gustare 1', '')}
+                        ${timelineItem('fa-dumbbell', '#10b981', prog.antrenament_ora, 'Antrenament', prog.antrenament_tip)}
+                        ${timelineItem('fa-utensils', '#60a5fa', prog.pranz_ora, 'Prânz', '')}
+                        ${timelineItem('fa-cookie-bite', '#c084fc', prog.gustare2_ora, 'Gustare 2', '')}
+                        ${timelineItem('fa-bowl-food', '#818cf8', prog.cina_ora, 'Cină', '')}
+                        ${timelineItem('fa-spa', '#a78bfa', prog.relaxare_ora, 'Relaxare', 'Pregătirea pentru somn')}
+                        ${timelineItem('fa-moon', '#6366f1', prog.somn_ora, 'Somn', `${prog.ore_somn}h recomandate`)}
+                    </div>
+                </div>
+
+                <!-- Sleep section -->
+                <div class="p-4" style="background: linear-gradient(135deg, #0d1a30, #111d33); border-top: 1px solid #1a2d4a;">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-bed text-2xl" style="color: #818cf8;"></i>
+                        <div>
+                            <h4 class="font-bold text-white">Program Somn</h4>
+                            <p class="text-sm text-gray-400">Culcare: ${prog.somn_ora} | Durata: ${prog.ore_somn} ore</p>
+                        </div>
+                    </div>
+                    ${prog.sfat_somn ? `<div class="mt-2 p-3 rounded-lg" style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);">
+                        <p class="text-sm" style="color: #a5b4fc;"><i class="fa-solid fa-moon mr-1"></i> ${prog.sfat_somn}</p>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }
+
+        function timelineItem(icon, color, time, label, detail) {
+            return `
+            <div class="relative flex items-start gap-3 mb-4">
+                <div class="absolute -left-5 w-6 h-6 rounded-full flex items-center justify-center" style="background-color: #0b1426; border: 2px solid ${color};">
+                    <i class="fa-solid ${icon} text-xs" style="color: ${color};"></i>
+                </div>
+                <div class="flex-1 ml-4">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono font-bold text-sm" style="color: ${color};">${time}</span>
+                        <span class="font-semibold text-white text-sm">${label}</span>
+                    </div>
+                    ${detail ? `<p class="text-xs text-gray-500 mt-0.5">${detail}</p>` : ''}
+                </div>
+            </div>`;
+        }
+
+
+        // VIP & AI Mocks (Simulare)
+        function activeazaVIP() {
+            document.querySelector('#zona-plata button').innerText = "Se activează...";
+            setTimeout(() => {
+                document.getElementById('zona-plata').style.display = 'none';
+                document.getElementById('zona-ai').classList.remove('hidden');
+            }, 1000);
+        }
+        function simuleazaAnaliza(input) {
+            document.getElementById('rezultat-analiza').classList.add('hidden');
+            document.getElementById('loading-analiza').classList.remove('hidden');
+
+            setTimeout(() => {
+                document.getElementById('loading-analiza').classList.add('hidden');
+                document.getElementById('rezultat-analiza').classList.remove('hidden');
+            }, 2000);
+        }
+
+        // --- INIȚIALIZARE LA ÎNCĂRCAREA PAGINII ---
+        window.onload = function() {
+            if(document.getElementById('acasa')) {
+                schimbaSectiunea('acasa');
+            }
+            selecteazaDieta(dietaCurenta);
+            schimbaLocatieExercitii(locatieCurenta);
+            schimbaZiuaEx(1);
+            schimbaZiuaProg(1);
+            updateAntrenamenteUI();
+            updateProgramUI();
+            afiseazaCitat();
+        };
+
+    </script>
+</body>
+</html>
